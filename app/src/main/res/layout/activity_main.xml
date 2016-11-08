@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <EditText
+        android:id="@+id/shirota"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/edit_shirota" />
+
+    <EditText
+        android:id="@+id/dolgota"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/edit_dolgota" />
+
+
+    <Button
+        android:id="@+id/buttonRefresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal|center"
+        android:textSize="30px"
+        android:padding="20px"
+        android:layout_marginTop="10dip"
+        android:text="@string/update"
+        />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="..."
+        android:textSize="50dp"
+        android:gravity="center_horizontal"
+        android:id="@+id/city"
+        android:textColor="#EEE3C4"/>
+
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="..."
+        android:textSize="100dp"
+        android:gravity="center_horizontal"
+        android:id="@+id/textviewTemperature"
+        android:textColor="#EEE3C4"
+        />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="..."
+            android:gravity="center_horizontal"
+            android:id="@+id/description"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/humidity"
+            android:gravity="center_horizontal"
+            android:id="@+id/humidity"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/wind_speed"
+            android:gravity="center_horizontal"
+            android:id="@+id/wind"
+            />
+
+    </LinearLayout>/>
+</LinearLayout>

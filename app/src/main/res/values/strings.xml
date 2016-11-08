@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Weather</string>
+    <string name="edit_text">Введите широту</string>
+    <string name="edit_shirota">Введите широту</string>
+    <string name="edit_dolgota">Ввведите долготу</string>
+    <string name="update">обновить</string>
+    <string name="humidity">Влажность</string>
+    <string name="wind_speed">Скорость ветра:</string>
+</resources>
