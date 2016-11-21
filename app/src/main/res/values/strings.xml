@@ -1,9 +1,47 @@
 <resources>
     <string name="app_name">Weather</string>
     <string name="edit_text">Введите широту</string>
-    <string name="edit_shirota">Введите широту</string>
-    <string name="edit_dolgota">Ввведите долготу</string>
-    <string name="update">обновить</string>
-    <string name="humidity">Влажность</string>
-    <string name="wind_speed">Скорость ветра:</string>
+    <string name="edit_shirota">Введите широту в формате ХХ.ХХХХ</string>
+    <string name="edit_dolgota">Ввведите долготу в формате XХХ.ХХХХ</string>
+    <string name="update">Найти</string>
+    <string name="humidity">Влажность:</string>
+    <string name="wind_speed">Скорость ветра</string>
+    <string name="uncorrect">Неверные координаты</string>
+    <string name="notDefined">Локация не определена</string>
+    <string name="enterCity">Введите название города</string>
+    <string name="unncorrect">Неверное название населенного пункта</string>
+    <string name="connectionProblem">Проблемы с интернетом</string>
+    <string name="probability">Вероятность осадков:</string>
+    <string name="byHour">По часам</string>
+    <string name="byDay">По дням</string>
+    <string name="wind_symbol">Ветер</string>
+    <string name="windMeasure">м/с</string>
+    <string name="celcius">°C</string>
+    <string name="isTaken">Иконки взяты с:</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_share">Поделится</string>
+    <string name="send_to">yyy</string>
+
+    <string name="title_activity_settings">Settings</string>
+    <string name="unit">ЕДЕНИЦЫ</string>
+    <string name="temperature">Температура</string>
+    <string name="mc">м/с</string>
+    <string name="km.h">км/ч</string>
+    <string name="m.h">миль/ч</string>
+    <string name="farengeit">°F</string>
+    <string name="network">НАСТРОЙКИ СЕТИ</string>
+    <string name="time_format">Формат времени</string>
+    <string name="h12">12 час</string>
+    <string name="h24">24 час</string>
+    <string name="dm">ДД:ММ</string>
+    <string name="md">ММ:ДД</string>
+    <string name="wi_fi">Работать только через Wi-Fi</string>
+    <string name="dateFormat">Формат даты</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
+    <string name="preference">mySattings</string>
+    <string name="apply">Apply</string>
+    <string name="connectionWifiProblem">Подключени по Wi-Fi отсутствует</string>
+
+
 </resources>
