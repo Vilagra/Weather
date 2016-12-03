@@ -11,10 +11,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -22,12 +24,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,8 +50,11 @@ import android.widget.Toast;
 import com.example.weather.adpters.WeatherByDayAdapter;
 import com.example.weather.adpters.WeatherByHourAdapter;
 import com.example.weather.entity.CurrentDisplayedWeather;
+import com.example.weather.entity.Weather;
 import com.example.weather.entity.WeatherByDay;
 import com.example.weather.entity.WeatherByHours;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.Thing;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,9 +62,9 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
 
-    private MyApplication myApplication;
     private ShareActionProvider shareActionProvider;
     private SharedPreferences sharedPreferences;
+    private DataManager dataManager;
 
     public static boolean refreshDisplay;
 
@@ -70,6 +77,7 @@ public class MainActivity extends Activity {
 
     public final String CITY = "city";
     public final String RADIOBUTTON_ID = "radoButtonId";
+    private final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 75443;
 
     EditText enterCity;
     TextView cityV;
@@ -84,6 +92,8 @@ public class MainActivity extends Activity {
     RecyclerView recycler;
     RadioGroup radioGroupV;
     TextView linkV;
+    MenuItem menuShareItem;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,40 +112,41 @@ public class MainActivity extends Activity {
         probabilityV = (TextView) findViewById(R.id.probability);
         radioGroupV = (RadioGroup) findViewById(R.id.radio_group);
         linkV = (TextView) findViewById(R.id.link);
-        myApplication = (MyApplication) getApplication();
+        dataManager= new DataManager(getSharedPreferences(getString(R.string.myData), Context.MODE_PRIVATE));
         setPreferences();  //by first start of application sets default preferences; !!!Не знаю где оставлять этот коммент по этому методу тут или над самим методом или там и там? Сделаю в обоих
-        if (myApplication.getCurrentDisplay() != null) { //by screen rotation recovers state by weather object !!!Вначале я сохранял состояние всех вьюшек в бандстейт, но их очень много и я
-                                                                                                    //решил создавать объект, восстанавливать состояние по нему и хранить его в myapplication
-            updateView(myApplication.getNameOfCity(), myApplication.getCurrentDisplay(), myApplication.getLocation());
-            if(savedInstanceState!=null) {
+        if (dataManager.getCurrentDisplay() != null) { //by screen rotation recovers state by weather object !!!Вначале я сохранял состояние всех вьюшек в бандстейт, но их очень много и я
+                                                        //решил создавать объект, восстанавливать состояние по нему и хранить его в myapplication
+            updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
+            if (savedInstanceState != null) {
                 RadioButton radioButton = (RadioButton) findViewById(savedInstanceState.getInt(RADIOBUTTON_ID));
                 radioButton.setChecked(true);
             }
             updateRecycler();
-        }
-        else if(sharedPreferences.getString(CITY,null)!=null){ //by start of application restores last entered city of the previous start
-            enterCity.setText(sharedPreferences.getString(CITY,null));
+        }/* else if (dataManager.getNameOfCity() != null) { //by start of application restores last entered city of the previous start
+            enterCity.setText(sharedPreferences.getString(CITY, null));
             refreshData();
-        }
+        }*/
         final Button button = (Button) findViewById(R.id.buttonRefresh);
 
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); //these rows are present in order to hide keyboard
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE); //these rows are present in order to hide keyboard
                 imm.hideSoftInputFromWindow(enterCity.getWindowToken(), 0);                                  // when button "найти" is pressed
                 refreshData();
             }
         });
 
+
     }
 
-    public void onStart(){
+    public void onStart() {
         super.onStart();
-        if(refreshDisplay){  //if settings of units were changed, updates display with new units, for example fahrengheit or celcius
-            updateView(myApplication.getNameOfCity(), myApplication.getCurrentDisplay(), myApplication.getLocation());
+        if (refreshDisplay) {  //if settings of units were changed, updates display with new units, for example fahrengheit or celcius
+            updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
+            updateRecycler();
         }
-        refreshDisplay=false;
+        refreshDisplay = false;
     }
 
     //by first start of application sets default preferences;
@@ -156,18 +167,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(RADIOBUTTON_ID, radioGroupV.getCheckedRadioButtonId());
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(CITY,myApplication.getNameOfCity()); //before application closes, saves last city  !!!я не уверен что делаю это в правильном месте
-        editor.commit();
+        //SharedPreferences.Editor editor = sharedPreferences.edit();
+        //editor.putString(CITY, myApplication.getNameOfCity()); //before application closes, saves last city  !!!я не уверен что делаю это в правильном месте
+        //editor.commit();
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        MenuItem menuItem = menu.findItem(R.id.action_share);
-        shareActionProvider = (ShareActionProvider) menuItem.getActionProvider();
-        setIntent();  //sets default intent for shareActionProvider  !!!вот тут я вобще не уверен, я делал приблизительно как в книге, я устанавливаю провайдер в который устанавливаю битмап,
+        menuShareItem = menu.findItem(R.id.action_share);
+        shareActionProvider = (ShareActionProvider) menuShareItem.getActionProvider();
+        checkPermission();
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -193,6 +204,7 @@ public class MainActivity extends Activity {
         intent.putExtra(Intent.EXTRA_STREAM, getImageUri(this, bitmap));
         shareActionProvider.setShareIntent(intent);
     }
+
     //next 2 methods I googled in order to get screenshot
     private Bitmap getBitmapFromView(LinearLayout view) {
         try {
@@ -224,10 +236,10 @@ public class MainActivity extends Activity {
     }
 
     public void refreshData() {
-        myApplication.setNameOfCity(enterCity.getText().toString());
-        if(checkConnection()) {
+        dataManager.setNameOfCity(enterCity.getText().toString());
+        if (checkConnection()) {
             GetLatLongAsyncTask latlng = new GetLatLongAsyncTask(
-                    myApplication.getNameOfCity().replaceAll(" ", "%20"));
+                    dataManager.getNameOfCity().replaceAll(" ", "%20"));
             latlng.execute();
         }
     }
@@ -235,18 +247,18 @@ public class MainActivity extends Activity {
     private void updateView(String city, CurrentDisplayedWeather currentDisplayedWeather, String location) {
         city = city.substring(0, 1).toUpperCase() + city.substring(1);
         cityV.setText(city);
-        temperatureV.setText(currentDisplayedWeather.getTemperatureString());
+        temperatureV.setText(currentDisplayedWeather.getTemperatureString(sharedPreferences.getString(UNIT_TEMPRATURE,null)));
         locationV.setText(location);
         descriptionV.setText(currentDisplayedWeather.getSummary());
         humidityV.setText(getString(R.string.humidity) + " " + currentDisplayedWeather.getHumidityString());
-        windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString());
+        windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString(sharedPreferences.getString(UNIT_WIND,null)));
         pictureV.setImageResource(currentDisplayedWeather.getIdDrawable());
         probabilityV.setText(getString(R.string.probability) + " " + currentDisplayedWeather.getPrecipProbString());
         dayOfWeekV.setText(currentDisplayedWeather.getDayOfWeekLong());
         linkV.setText(Html.fromHtml("<a href=\"https://icons8.com/web-app/3350/Clouds\">Clouds icon credits</a>"));
         linkV.setMovementMethod(LinkMovementMethod.getInstance());
-        if (shareActionProvider != null) {
-            setIntent();
+        if(shareActionProvider!=null) {
+            checkPermission();
         }
     }
 
@@ -256,18 +268,18 @@ public class MainActivity extends Activity {
         RecyclerView.Adapter adapter = null;
         switch (id) {
             case R.id.byDay:
-                adapter = new WeatherByDayAdapter(myApplication.getWeatherByDays());
-                ((WeatherByDayAdapter)adapter).setListener(new WeatherByDayAdapter.Listener() {
+                adapter = new WeatherByDayAdapter(dataManager.getWeatherByDays(),sharedPreferences);
+                ((WeatherByDayAdapter) adapter).setListener(new WeatherByDayAdapter.Listener() {
                     @Override
                     public void onClick(int position) {
-                        CurrentDisplayedWeather currentDisplayedWeather = myApplication.getWeatherByDays().get(position);
-                        myApplication.setCurrentDisplay(currentDisplayedWeather);
-                        updateView(myApplication.getNameOfCity(), currentDisplayedWeather, myApplication.getLocation());
+                        CurrentDisplayedWeather currentDisplayedWeather = dataManager.getWeatherByDays().get(position);
+                        dataManager.setCurrentDisplay(currentDisplayedWeather);
+                        updateView(dataManager.getNameOfCity(), currentDisplayedWeather, dataManager.getLocation());
                     }
                 });
                 break;
             case R.id.byHour:
-                adapter = new WeatherByHourAdapter(myApplication.getWeatherByHoursList());
+                adapter = new WeatherByHourAdapter(dataManager.getWeatherByHoursList(),sharedPreferences);
                 break;
         }
         recycler.setAdapter(adapter);
@@ -277,6 +289,34 @@ public class MainActivity extends Activity {
 
     public void onRadioButtonClicked(View view) {
         updateRecycler();
+    }
+
+    public void showMap(View view) {
+        Uri location = Uri.parse("geo:0,0?q=" + dataManager.getLocation());
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, location);
+        startActivity(mapIntent);
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
     }
 
     public class GetWeatherAsyncTask extends AsyncTask<String, Void, String> {
@@ -337,10 +377,10 @@ public class MainActivity extends Activity {
                 Double probability = currently.getDouble("precipProbability");
                 int icon = getResources().getIdentifier(currently.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
                 CurrentDisplayedWeather currentDisplayedWeather = new CurrentDisplayedWeather(MainActivity.this, date, description, icon, temperature, wind, humidity, probability);
-                myApplication.setCurrentDisplay(currentDisplayedWeather);
-                updateView(myApplication.getNameOfCity(), currentDisplayedWeather, myApplication.getLocation());
-                List<WeatherByDay> weatherByDayList = new ArrayList<>();
-                List<WeatherByHours> weatherByHoursList = new ArrayList<>();
+                dataManager.setCurrentDisplay(currentDisplayedWeather);
+                updateView(dataManager.getNameOfCity(), currentDisplayedWeather, dataManager.getLocation());
+                List<Weather> weatherByDayList = new ArrayList<>();
+                List<Weather> weatherByHoursList = new ArrayList<>();
                 JSONObject dailly = jsonObject.getJSONObject("daily");
                 JSONArray daillArray = dailly.getJSONArray("data");
                 for (int i = 0; i < daillArray.length(); i++) {
@@ -365,8 +405,8 @@ public class MainActivity extends Activity {
                     temperature = data.getDouble("temperature");
                     weatherByHoursList.add(new WeatherByHours(MainActivity.this, date, icon, temperature, wind));
                 }
-                myApplication.setWeatherByDays(weatherByDayList);
-                myApplication.setWeatherByHoursList(weatherByHoursList);
+                dataManager.setWeatherByDays(weatherByDayList);
+                dataManager.setWeatherByHoursList(weatherByHoursList);
                 updateRecycler();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -374,6 +414,7 @@ public class MainActivity extends Activity {
             }
         }
     }
+
     //this async task finds latitude, longitude by cityName in google maps and passes them to getWeatherAsyncTask
     public class GetLatLongAsyncTask extends
             AsyncTask<Void, Void, StringBuilder> {
@@ -384,6 +425,7 @@ public class MainActivity extends Activity {
             this.place = place;
 
         }
+
         @Override
         protected void onCancelled() {
             super.onCancelled();
@@ -392,7 +434,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected StringBuilder doInBackground(Void... params) {
-            InputStreamReader in=null;
+            InputStreamReader in = null;
             try {
                 StringBuilder jsonResults = new StringBuilder();
                 String googleMapUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="
@@ -417,7 +459,7 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 try {
                     in.close();
                 } catch (IOException e) {
@@ -443,9 +485,9 @@ public class MainActivity extends Activity {
                 JSONObject location_jsonObj = geometry_jsonObj.getJSONObject("location");
                 String latitude = location_jsonObj.getString("lat");
                 String longitude = location_jsonObj.getString("lng");
-                myApplication.setLocation(before_geometry_jsonObj.getString("formatted_address"));
+                dataManager.setLocation(before_geometry_jsonObj.getString("formatted_address"));
                 if (longitude != null && longitude != null) {
-                    if(checkConnection()){
+                    if (checkConnection()) {
                         new GetWeatherAsyncTask().execute(getUrl(latitude, longitude));
                     }
                 } else {
@@ -466,28 +508,76 @@ public class MainActivity extends Activity {
         prepareUrl.append("?units=si&lang=ru");
         return prepareUrl.toString();
     }
+
     //checks network connection depending on the settings specified by the user (only wifi or any connection)
     public boolean checkConnection() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.INTERNET},
+                1);
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        String onlyWiFi =sharedPreferences.getString(WIFI,null);
+        String onlyWiFi = sharedPreferences.getString(WIFI, null);
         if (onlyWiFi.equals("OFF") && networkInfo != null && networkInfo.isConnected()) {
             return true;
-        }else if(onlyWiFi.equals("ON")) {
+        } else if (onlyWiFi.equals("ON")) {
             NetworkInfo networkInfoWiFi = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-            if (networkInfo.isConnected() && networkInfoWiFi!=null&&networkInfoWiFi.isConnected()) {
+            if (networkInfo.isConnected() && networkInfoWiFi != null && networkInfoWiFi.isConnected()) {
                 return true;
             } else {
                 Toast.makeText(MainActivity.this, getString(R.string.connectionWifiProblem), Toast.LENGTH_LONG).show();
                 return false;
             }
-        }
-        else {
-            Toast.makeText(MainActivity.this,getString(R.string.connectionProblem),Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(MainActivity.this, getString(R.string.connectionProblem), Toast.LENGTH_LONG).show();
             return false;
         }
     }
 
+    public void checkPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                final String message = "это разрешение необходимо что бы делится погодой";
+                Snackbar.make(temperatureV, message, Snackbar.LENGTH_LONG)
+                        .setAction("GRANT", new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+                            }
+                        })
+                        .show();
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
+            }
+        }
+        else {
+            setIntent();
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_WRITE_STORAGE: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setIntent();
+
+                } else {
+                    menuShareItem.setVisible(false);
+                }
+                return;
+            }
+        }
+    }
 
 }

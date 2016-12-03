@@ -8,42 +8,43 @@
     card_view:cardCornerRadius="4dp">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center_horizontal"
             android:id="@+id/date2"/>
 
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center_horizontal"
             android:id="@+id/hour"/>
 
         <ImageView android:id="@+id/imageWeather2"
             android:layout_height="wrap_content"
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:scaleType="center"/>
 
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center_horizontal"
             android:id="@+id/temperetureByHour"/>
 
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center_horizontal"
             android:text="@string/wind_symbol"/>
 
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center_horizontal"
             android:id="@+id/wind_by_hour"/>
 
 

@@ -7,48 +7,80 @@ import android.content.SharedPreferences;
 import com.example.weather.MainActivity;
 import com.example.weather.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 
 /**
  * Created by Vilagra on 16.11.2016.
  */
 
-public class Weather {
-    private Activity ctx;   //!!!храню контекст из-за того что мне нужен доступ к строковым ресурсам, наверно это не правильно? как правильно делать в данном случае? хранить контекст и
-                             //иметь доступ к ресурсам или обходиться без ресурсов?
+public class Weather implements Comparable<Weather> {
+
     private Date date;
     private int idDrawable;
     private double temperature;
     private double wind;
-    private SharedPreferences sharedPreferences;
 
-    public Weather(Activity ctx,Date date, int idDrawable, double temperature, double wind) {
-        this.ctx=ctx;
+    public static final String DATE = "date";
+    public static final String ID_DRAWABLE = "idDrawable";
+    public static final String TEMPERATURE = "temperature";
+    public static final String WIND = "wind";
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Weather weather = (Weather) o;
+
+        return date.equals(weather.date);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return date.hashCode();
+    }
+
+    @Override
+    public int compareTo(Weather o) {
+        if(this.equals(o)){
+            return 0;
+        }
+        return this.date.getTime()>o.date.getTime()?1:-1;
+    }
+
+    public Weather(Activity ctx, Date date, int idDrawable, double temperature, double wind) {
         this.date = date;
         this.idDrawable = idDrawable;
         this.temperature = temperature;
         this.wind=wind;
-        this.sharedPreferences=ctx.getSharedPreferences(ctx.getString(R.string.preference),Context.MODE_PRIVATE);
     }
 
-    public Context getCtx() {
-        return ctx;
+    public Weather(JSONObject jsonObject) {
+        try {
+            date=new Date(jsonObject.getLong(DATE));
+            idDrawable=jsonObject.getInt(ID_DRAWABLE);
+            temperature=jsonObject.getDouble(TEMPERATURE);
+            wind=jsonObject.getDouble(WIND);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
-    public SharedPreferences getSharedPreferences() {
-        return sharedPreferences;
-    }
-
-    public String getStringDate() {
-        if(sharedPreferences.getString(MainActivity.UNIT_DATE,null).equals(ctx.getString(R.string.dm))) {
+    public String getStringDate(String unit) {
+        if(unit.equals("ДД:ММ")) {
             return new SimpleDateFormat("dd.MM").format(date.getTime());
         }
         return new SimpleDateFormat("MM.dd").format(date.getTime());
     }
 
-    public String getStringHour() {
-        if(sharedPreferences.getString(MainActivity.UNIT_TIME,null).equals(ctx.getString(R.string.h24))) {
+    public String getStringHour(String unit) {
+        if(unit.equals("24 час")) {
             return new SimpleDateFormat("HH:mm").format(getDate().getTime());
         }
         return new SimpleDateFormat("hh:mm a").format(getDate().getTime());
@@ -71,19 +103,34 @@ public class Weather {
         return idDrawable;
     }
 
-    public String getTemperatureString() {
-        if(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null).equals(ctx.getString(R.string.celcius))){
-            return Math.round(temperature)+" "+ ctx.getString(R.string.celcius);
+    public String getTemperatureString(String unit) {
+        if(unit.equals("°C")){
+            return Math.round(temperature)+ unit;
         }
-        return Math.round(temperature*9/5+32)+" "+ctx.getString(R.string.farengeit);
+        return Math.round(temperature*9/5+32)+unit;
     }
 
-    public String getWindString() {
-        if(sharedPreferences.getString(MainActivity.UNIT_WIND,null).equals(ctx.getString(R.string.mc))) {
-            return wind + ": " + ctx.getString(R.string.windMeasure);
-        }else if (sharedPreferences.getString(MainActivity.UNIT_WIND,null).equals(ctx.getString(R.string.km_h))){
-            return String.format("%.2f",wind*3.6) + " " +ctx.getString(R.string.km_h);
+    public String getWindString(String unit) {
+        if(unit.equals("м/с")) {
+            return wind + " " + unit;
+        }else if (unit.equals("км/ч")){
+            return String.format("%.2f",wind*3.6) + " " +unit;
         }
-        return String.format("%.2f",wind*2.23694) + " " +ctx.getString(R.string.m_h);
+        return String.format("%.2f",wind*2.23694) + " " +unit;
     }
+
+    public JSONObject getJSONObject(){
+        JSONObject jsonObject = new JSONObject();
+        try{
+            jsonObject.put(DATE,date.getTime());
+            jsonObject.put(ID_DRAWABLE,idDrawable);
+            jsonObject.put(TEMPERATURE,temperature);
+            jsonObject.put(WIND,wind);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+
+
 }

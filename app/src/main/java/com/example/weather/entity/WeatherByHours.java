@@ -3,6 +3,8 @@ package com.example.weather.entity;
 import android.app.Activity;
 import android.content.Context;
 
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -20,4 +22,7 @@ public class WeatherByHours extends Weather{
     }
 
 
+    public WeatherByHours(JSONObject jsonObject) {
+        super(jsonObject);
+    }
 }

@@ -5,6 +5,9 @@ import android.content.Context;
 
 import com.example.weather.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -13,6 +16,10 @@ import java.util.Date;
  */
 
 public class CurrentDisplayedWeather extends Weather{
+
+    public static final String HUMIDITY = "humidity";
+    public static final String PRECIP = "precip";
+    public static final String SUMMARY = "summary";
 
     private double humidity;
     private double precipProb;
@@ -25,6 +32,17 @@ public class CurrentDisplayedWeather extends Weather{
         this.summary=summary;
     }
 
+    public CurrentDisplayedWeather(JSONObject jsonObject) {
+        super(jsonObject);
+        try {
+            humidity=jsonObject.getDouble(HUMIDITY);
+            precipProb=jsonObject.getDouble(PRECIP);
+            summary=jsonObject.getString(SUMMARY);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getSummary() {
         return summary;
     }
@@ -35,5 +53,18 @@ public class CurrentDisplayedWeather extends Weather{
 
     public String getPrecipProbString() {
         return (int)(precipProb*100)+"%";
+    }
+
+    @Override
+    public JSONObject getJSONObject() {
+        JSONObject jsonObject=super.getJSONObject();
+        try{
+            jsonObject.put(HUMIDITY,humidity);
+            jsonObject.put(PRECIP,precipProb);
+            jsonObject.put(SUMMARY,summary);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
     }
 }

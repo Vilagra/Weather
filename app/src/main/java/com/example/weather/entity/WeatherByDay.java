@@ -5,6 +5,9 @@ import android.app.Activity;
 import com.example.weather.MainActivity;
 import com.example.weather.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
 
 /**
@@ -20,14 +23,34 @@ public class WeatherByDay extends CurrentDisplayedWeather {
         this.minT = minT;
     }
 
-    public String getMaxTString() {
-        return getTemperatureString();
+    public WeatherByDay(JSONObject jsonObject) {
+        super(jsonObject);
+        try {
+            minT=jsonObject.getDouble("minT");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
-    public String getMinTString() {
-        if(getSharedPreferences().getString(MainActivity.UNIT_TEMPRATURE,null).equals(getCtx().getString(R.string.celcius))){
-            return Math.round(minT)+" "+ getCtx().getString(R.string.celcius);
+    public String getMaxTString(String unit) {
+        return getTemperatureString(unit);
+    }
+
+    public String getMinTString(String unit) {
+        if(unit.equals("°C")){
+            return Math.round(minT)+" "+ unit;
         }
-        return Math.round(minT*9/5+32)+" "+getCtx().getString(R.string.farengeit);
+        return Math.round(minT*9/5+32)+" "+unit;
+    }
+
+    @Override
+    public JSONObject getJSONObject() {
+        JSONObject jsonObject = super.getJSONObject();
+        try{
+            jsonObject.put("minT",minT);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
     }
 }

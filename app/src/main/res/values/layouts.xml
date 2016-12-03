@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="activity_main" type="layout">@layout/activity_main1</item>
+    <item name="card_weather_by_day" type="layout">@layout/card_weather_by_day1</item>
+    <item name="card_weather_by_hour" type="layout">@layout/card_weather_by_hour1</item>
+</resources>

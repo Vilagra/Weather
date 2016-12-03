@@ -1,5 +1,6 @@
 package com.example.weather.adpters;
 
+import android.content.SharedPreferences;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.weather.MainActivity;
 import com.example.weather.R;
 import com.example.weather.entity.WeatherByHours;
 
@@ -19,9 +21,11 @@ import java.util.List;
 
 public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdapter.ViewHolder> {
     List<WeatherByHours> list;
+    SharedPreferences sharedPreferences;
 
-    public WeatherByHourAdapter(List<WeatherByHours> list) {
+    public WeatherByHourAdapter(List<WeatherByHours> list,SharedPreferences sharedPreferences) {
         this.list = list;
+        this.sharedPreferences=sharedPreferences;
     }
 
     public static class  ViewHolder extends RecyclerView.ViewHolder{
@@ -60,10 +64,10 @@ public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdap
 
     @Override
     public void onBindViewHolder(WeatherByHourAdapter.ViewHolder holder, int position) {
-        holder.date.setText(list.get(position).getStringDate());
-        holder.dateHour.setText(list.get(position).getStringHour());
-        holder.wind.setText(list.get(position).getWindString());
-        holder.temperature.setText(list.get(position).getTemperatureString());
+        holder.date.setText(list.get(position).getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
+        holder.dateHour.setText(list.get(position).getStringHour(sharedPreferences.getString(MainActivity.UNIT_TIME,null)));
+        holder.wind.setText(list.get(position).getWindString(sharedPreferences.getString(MainActivity.UNIT_WIND,null)));
+        holder.temperature.setText(list.get(position).getTemperatureString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
         holder.icon.setImageResource(list.get(position).getIdDrawable());
 
     }

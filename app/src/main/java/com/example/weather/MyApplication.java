@@ -16,8 +16,8 @@ import java.util.List;
 и мне ж надо как-то запоминать и аррайлист для них, в общем я сохраняю тут, я понимаю что это может не правильно, есть вариант класса со стаческим полями, есть вариант хранить просто название
 город и делать повторный запрос по погоде(наверно самый не верный путь), есть вариант превращать объект в жсон, ео потом в строку и сохранять список этих строк в sharedPreference и с него
 востанавливать, наверно можно через парсел, но я особо в нем не разбирался, в общем какой путь лучше? может ты предложишь свое решение. А то выходит стат. поля плохо, данное решение тоже
-плохо, так я слушал лекцию и там сказали что это костыл не реккомендуемый к использыванию, в общем надеюсь ты меня направишь в правильную сторону.*/
-public class MyApplication extends Application {
+плохо, так я слушал лекцию и там сказали что это костыль не реккомендуемый к использыванию, в общем надеюсь ты меня направишь в правильную сторону.*/
+/*public class MyApplication extends Application {
     private List<WeatherByDay> weatherByDays;
     private List<WeatherByHours> weatherByHoursList;
     private CurrentDisplayedWeather currentDisplay;
@@ -63,4 +63,4 @@ public class MyApplication extends Application {
     public void setWeatherByHoursList(List<WeatherByHours> weatherByHoursList) {
         this.weatherByHoursList = weatherByHoursList;
     }
-}
+}*/

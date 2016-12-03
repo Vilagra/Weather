@@ -3,6 +3,9 @@ package com.example.weather;
 import android.location.Geocoder;
 import android.util.Log;
 
+import com.example.weather.entity.Weather;
+import com.example.weather.entity.WeatherByHours;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
