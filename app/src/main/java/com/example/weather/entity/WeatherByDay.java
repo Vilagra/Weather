@@ -18,8 +18,8 @@ import java.util.Date;
 public class WeatherByDay extends CurrentDisplayedWeather {
     private double minT;
 
-    public WeatherByDay(Activity context, Date date, String summary, int idDrawable, double maxT, double minT, double wind, double humidty, double precipProb) {
-        super(context, date, summary, idDrawable, maxT, wind, humidty, precipProb);
+    public WeatherByDay( Date date, String summary, int idDrawable, double maxT, double minT, double wind, double humidty, double precipProb) {
+        super( date, summary, idDrawable, maxT, wind, humidty, precipProb);
         this.minT = minT;
     }
 

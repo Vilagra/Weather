@@ -25,8 +25,8 @@ public class CurrentDisplayedWeather extends Weather{
     private double precipProb;
     private String summary;
 
-    public CurrentDisplayedWeather(Activity context, Date date, String summary, int idDrawable, double temperature, double wind, double humidty, double precipProb) {
-        super(context,date,idDrawable,temperature,wind);
+    public CurrentDisplayedWeather(Date date, String summary, int idDrawable, double temperature, double wind, double humidty, double precipProb) {
+        super(date,idDrawable,temperature,wind);
         this.humidity=humidty;
         this.precipProb=precipProb;
         this.summary=summary;

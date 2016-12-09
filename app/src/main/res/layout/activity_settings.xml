@@ -140,9 +140,8 @@
 
             <RadioButton
                 android:id="@+id/h12"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/h12"
                 android:textColor="@color/white"
@@ -152,9 +151,8 @@
 
             <RadioButton
                 android:id="@+id/h24"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/h24"
                 android:textColor="@color/white"
@@ -235,7 +233,7 @@
             android:layout_marginRight="10dp"
             android:layout_marginBottom="20dp"
             android:text="@string/wi_fi"
-            android:onClick="onWiFiClicked"
+            android:onClick="changePreferences"
             android:textOn="On"
             android:textOff="Off"
             />

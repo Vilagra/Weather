@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -53,8 +55,7 @@ import com.example.weather.entity.CurrentDisplayedWeather;
 import com.example.weather.entity.Weather;
 import com.example.weather.entity.WeatherByDay;
 import com.example.weather.entity.WeatherByHours;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.Thing;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,9 +76,9 @@ public class MainActivity extends Activity {
     public static final String WIFI = "wifi";
 
 
-    public final String CITY = "city";
     public final String RADIOBUTTON_ID = "radoButtonId";
     private final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 75443;
+    private final int SETTINGS_RESULT = 75444;
 
     EditText enterCity;
     TextView cityV;
@@ -112,10 +113,10 @@ public class MainActivity extends Activity {
         probabilityV = (TextView) findViewById(R.id.probability);
         radioGroupV = (RadioGroup) findViewById(R.id.radio_group);
         linkV = (TextView) findViewById(R.id.link);
-        dataManager= new DataManager(getSharedPreferences(getString(R.string.myData), Context.MODE_PRIVATE));
+        dataManager = new DataManager(getSharedPreferences(getString(R.string.myData), Context.MODE_PRIVATE));
         setPreferences();  //by first start of application sets default preferences; !!!Не знаю где оставлять этот коммент по этому методу тут или над самим методом или там и там? Сделаю в обоих
         if (dataManager.getCurrentDisplay() != null) { //by screen rotation recovers state by weather object !!!Вначале я сохранял состояние всех вьюшек в бандстейт, но их очень много и я
-                                                        //решил создавать объект, восстанавливать состояние по нему и хранить его в myapplication
+            //решил создавать объект, восстанавливать состояние по нему и хранить его в myapplication
             updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
             if (savedInstanceState != null) {
                 RadioButton radioButton = (RadioButton) findViewById(savedInstanceState.getInt(RADIOBUTTON_ID));
@@ -138,15 +139,6 @@ public class MainActivity extends Activity {
         });
 
 
-    }
-
-    public void onStart() {
-        super.onStart();
-        if (refreshDisplay) {  //if settings of units were changed, updates display with new units, for example fahrengheit or celcius
-            updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
-            updateRecycler();
-        }
-        refreshDisplay = false;
     }
 
     //by first start of application sets default preferences;
@@ -187,7 +179,7 @@ public class MainActivity extends Activity {
         switch (item.getItemId()) {
             case R.id.settings:
                 Intent intent = new Intent(this, Settings.class);
-                startActivity(intent);
+                startActivityForResult(intent, SETTINGS_RESULT);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -236,28 +228,28 @@ public class MainActivity extends Activity {
     }
 
     public void refreshData() {
-        dataManager.setNameOfCity(enterCity.getText().toString());
+        //dataManager.setNameOfCity(enterCity.getText().toString());
         if (checkConnection()) {
-            GetLatLongAsyncTask latlng = new GetLatLongAsyncTask(
-                    dataManager.getNameOfCity().replaceAll(" ", "%20"));
-            latlng.execute();
+            new GetLatLongAsyncTask().execute(enterCity.getText().toString().replaceAll(" ", "%20"));
         }
     }
 
     private void updateView(String city, CurrentDisplayedWeather currentDisplayedWeather, String location) {
-        city = city.substring(0, 1).toUpperCase() + city.substring(1);
+        if (city.length() > 0) {
+            city = city.substring(0, 1).toUpperCase() + city.substring(1);
+        }
         cityV.setText(city);
-        temperatureV.setText(currentDisplayedWeather.getTemperatureString(sharedPreferences.getString(UNIT_TEMPRATURE,null)));
+        temperatureV.setText(currentDisplayedWeather.getTemperatureString(sharedPreferences.getString(UNIT_TEMPRATURE, null)));
         locationV.setText(location);
         descriptionV.setText(currentDisplayedWeather.getSummary());
         humidityV.setText(getString(R.string.humidity) + " " + currentDisplayedWeather.getHumidityString());
-        windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString(sharedPreferences.getString(UNIT_WIND,null)));
+        windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString(sharedPreferences.getString(UNIT_WIND, null)));
         pictureV.setImageResource(currentDisplayedWeather.getIdDrawable());
         probabilityV.setText(getString(R.string.probability) + " " + currentDisplayedWeather.getPrecipProbString());
         dayOfWeekV.setText(currentDisplayedWeather.getDayOfWeekLong());
         linkV.setText(Html.fromHtml("<a href=\"https://icons8.com/web-app/3350/Clouds\">Clouds icon credits</a>"));
         linkV.setMovementMethod(LinkMovementMethod.getInstance());
-        if(shareActionProvider!=null) {
+        if (shareActionProvider != null) {
             checkPermission();
         }
     }
@@ -268,7 +260,7 @@ public class MainActivity extends Activity {
         RecyclerView.Adapter adapter = null;
         switch (id) {
             case R.id.byDay:
-                adapter = new WeatherByDayAdapter(dataManager.getWeatherByDays(),sharedPreferences);
+                adapter = new WeatherByDayAdapter(dataManager.getWeatherByDays(), sharedPreferences);
                 ((WeatherByDayAdapter) adapter).setListener(new WeatherByDayAdapter.Listener() {
                     @Override
                     public void onClick(int position) {
@@ -279,7 +271,7 @@ public class MainActivity extends Activity {
                 });
                 break;
             case R.id.byHour:
-                adapter = new WeatherByHourAdapter(dataManager.getWeatherByHoursList(),sharedPreferences);
+                adapter = new WeatherByHourAdapter(dataManager.getWeatherByHoursList(), sharedPreferences);
                 break;
         }
         recycler.setAdapter(adapter);
@@ -297,29 +289,13 @@ public class MainActivity extends Activity {
         startActivity(mapIntent);
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Main Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-
     @Override
     public void onStop() {
         super.onStop();
 
     }
 
-    public class GetWeatherAsyncTask extends AsyncTask<String, Void, String> {
+    public class GetWeatherAsyncTask extends AsyncTask<String, Void, Void> {
 
         @Override
         protected void onProgressUpdate(Void... values) {
@@ -327,9 +303,58 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        protected String doInBackground(String... params) {
-            return getData(params[0]);
+        protected Void doInBackground(String... params) {
+            try {
+                JSONObject jsonObject = new JSONObject(getData(params[0]));
+                JSONObject currently = jsonObject.getJSONObject("currently");
+                Date date = new Date(currently.getLong("time") * 1000);
+                Double temperature = currently.getDouble("temperature");
+                String description = currently.getString("summary");
+                Double humidity = currently.getDouble("humidity");
+                Double wind = currently.getDouble("windSpeed");
+                Double probability = currently.getDouble("precipProbability");
+                int icon = getResources().getIdentifier(currently.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
+                CurrentDisplayedWeather currentDisplayedWeather = new CurrentDisplayedWeather( date, description, icon, temperature, wind, humidity, probability);
+                dataManager.setCurrentDisplay(currentDisplayedWeather);
+                List<Weather> weatherByDayList = new ArrayList<>();
+                List<Weather> weatherByHoursList = new ArrayList<>();
+                JSONObject dailly = jsonObject.getJSONObject("daily");
+                JSONArray daillArray = dailly.getJSONArray("data");
+                for (int i = 0; i < daillArray.length(); i++) {
+                    JSONObject data = daillArray.getJSONObject(i);
+                    date = new Date(data.getLong("time") * 1000);
+                    icon = getResources().getIdentifier(data.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
+                    Double maxT = data.getDouble("temperatureMax");
+                    Double minT = data.getDouble("temperatureMin");
+                    wind = data.getDouble("windSpeed");
+                    humidity = data.getDouble("humidity");
+                    probability = data.getDouble("precipProbability");
+                    description = currently.getString("summary");
+                    weatherByDayList.add(new WeatherByDay(date, description, icon, maxT, minT, wind, humidity, probability));
+                }
+                JSONObject hourly = jsonObject.getJSONObject("hourly");
+                JSONArray hourlyArray = hourly.getJSONArray("data");
+                for (int i = 0; i < hourlyArray.length(); i++) {
+                    JSONObject data = hourlyArray.getJSONObject(i);
+                    date = new Date(data.getLong("time") * 1000);
+                    icon = getResources().getIdentifier(data.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
+                    wind = data.getDouble("windSpeed");
+                    temperature = data.getDouble("temperature");
+                    weatherByHoursList.add(new WeatherByHours(date, icon, temperature, wind));
+                }
+                dataManager.setWeatherByDays(weatherByDayList);
+                dataManager.setWeatherByHoursList(weatherByHoursList);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
 
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
+            updateRecycler();
         }
 
         public String getData(String urlsite) {
@@ -361,70 +386,16 @@ public class MainActivity extends Activity {
                     e.printStackTrace();
                 }
             }
+
             return res.toString();
         }
 
-        @Override
-        protected void onPostExecute(String s) {
-            try {
-                JSONObject jsonObject = new JSONObject(s);
-                JSONObject currently = jsonObject.getJSONObject("currently");
-                Date date = new Date(currently.getLong("time") * 1000);
-                Double temperature = currently.getDouble("temperature");
-                String description = currently.getString("summary");
-                Double humidity = currently.getDouble("humidity");
-                Double wind = currently.getDouble("windSpeed");
-                Double probability = currently.getDouble("precipProbability");
-                int icon = getResources().getIdentifier(currently.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
-                CurrentDisplayedWeather currentDisplayedWeather = new CurrentDisplayedWeather(MainActivity.this, date, description, icon, temperature, wind, humidity, probability);
-                dataManager.setCurrentDisplay(currentDisplayedWeather);
-                updateView(dataManager.getNameOfCity(), currentDisplayedWeather, dataManager.getLocation());
-                List<Weather> weatherByDayList = new ArrayList<>();
-                List<Weather> weatherByHoursList = new ArrayList<>();
-                JSONObject dailly = jsonObject.getJSONObject("daily");
-                JSONArray daillArray = dailly.getJSONArray("data");
-                for (int i = 0; i < daillArray.length(); i++) {
-                    JSONObject data = daillArray.getJSONObject(i);
-                    date = new Date(data.getLong("time") * 1000);
-                    icon = getResources().getIdentifier(data.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
-                    Double maxT = data.getDouble("temperatureMax");
-                    Double minT = data.getDouble("temperatureMin");
-                    wind = data.getDouble("windSpeed");
-                    humidity = data.getDouble("humidity");
-                    probability = data.getDouble("precipProbability");
-                    description = currently.getString("summary");
-                    weatherByDayList.add(new WeatherByDay(MainActivity.this, date, description, icon, maxT, minT, wind, humidity, probability));
-                }
-                JSONObject hourly = jsonObject.getJSONObject("hourly");
-                JSONArray hourlyArray = hourly.getJSONArray("data");
-                for (int i = 0; i < hourlyArray.length(); i++) {
-                    JSONObject data = hourlyArray.getJSONObject(i);
-                    date = new Date(data.getLong("time") * 1000);
-                    icon = getResources().getIdentifier(data.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
-                    wind = data.getDouble("windSpeed");
-                    temperature = data.getDouble("temperature");
-                    weatherByHoursList.add(new WeatherByHours(MainActivity.this, date, icon, temperature, wind));
-                }
-                dataManager.setWeatherByDays(weatherByDayList);
-                dataManager.setWeatherByHoursList(weatherByHoursList);
-                updateRecycler();
-            } catch (JSONException e) {
-                e.printStackTrace();
 
-            }
-        }
     }
 
     //this async task finds latitude, longitude by cityName in google maps and passes them to getWeatherAsyncTask
     public class GetLatLongAsyncTask extends
-            AsyncTask<Void, Void, StringBuilder> {
-        String place;
-
-        public GetLatLongAsyncTask(String place) {
-            super();
-            this.place = place;
-
-        }
+            AsyncTask<String, Void, String> {
 
         @Override
         protected void onCancelled() {
@@ -433,12 +404,14 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        protected StringBuilder doInBackground(Void... params) {
+        protected String doInBackground(String... params) {
             InputStreamReader in = null;
+            String place = params[0];
+            Log.e("CITY", Arrays.toString(params));
             try {
-                StringBuilder jsonResults = new StringBuilder();
+                StringBuilder result = new StringBuilder();
                 String googleMapUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="
-                        + this.place + "&sensor=false&language=ru";
+                        + place + "&sensor=false&language=ru";
                 URL url = new URL(googleMapUrl);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setReadTimeout(10_000);
@@ -452,32 +425,11 @@ public class MainActivity extends Activity {
                 int read;
                 char[] buff = new char[1024];
                 while ((read = in.read(buff)) != -1) {
-                    jsonResults.append(buff, 0, read);
+                    result.append(buff, 0, read);
                 }
-                return jsonResults;
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (result == null) {
+                    return null;
                 }
-            }
-            return null;
-
-        }
-
-        @Override
-        protected void onPostExecute(StringBuilder result) {
-            super.onPostExecute(result);
-            if (result == null) {
-                Toast.makeText(MainActivity.this, getResources().getString(R.string.unncorrect), Toast.LENGTH_LONG).show();
-                return;
-            }
-            try {
                 JSONObject jsonObj = new JSONObject(result.toString());
                 JSONArray resultJsonArray = jsonObj.getJSONArray("results");
                 JSONObject before_geometry_jsonObj = resultJsonArray.getJSONObject(0);
@@ -486,19 +438,39 @@ public class MainActivity extends Activity {
                 String latitude = location_jsonObj.getString("lat");
                 String longitude = location_jsonObj.getString("lng");
                 dataManager.setLocation(before_geometry_jsonObj.getString("formatted_address"));
-                if (longitude != null && longitude != null) {
-                    if (checkConnection()) {
-                        new GetWeatherAsyncTask().execute(getUrl(latitude, longitude));
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, getResources().getString(R.string.unncorrect), Toast.LENGTH_LONG).show();
+                dataManager.setNameOfCity(dataManager.getLocation().split(",")[0]);
+                if (longitude != null && latitude != null) {
+                    return getUrl(latitude,longitude);
                 }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             } catch (JSONException e) {
                 e.printStackTrace();
-
+            } finally {
+                try {
+                    in.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s==null) {
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.unncorrect), Toast.LENGTH_LONG).show();
+            }
+            else {
+                new GetWeatherAsyncTask().execute(s);
         }
     }
+
+}
 
     public String getUrl(String latitude, String longitude) {
         StringBuilder prepareUrl = new StringBuilder("https://api.darksky.net/forecast/fff553af3244a00bd36d3c0b398dce88/");
@@ -518,9 +490,9 @@ public class MainActivity extends Activity {
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         String onlyWiFi = sharedPreferences.getString(WIFI, null);
-        if (onlyWiFi.equals("OFF") && networkInfo != null && networkInfo.isConnected()) {
+        if (onlyWiFi.equals(getString(R.string.off)) && networkInfo != null && networkInfo.isConnected()) {
             return true;
-        } else if (onlyWiFi.equals("ON")) {
+        } else if (onlyWiFi.equals(getString(R.string.on))) {
             NetworkInfo networkInfoWiFi = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             if (networkInfo.isConnected() && networkInfoWiFi != null && networkInfoWiFi.isConnected()) {
                 return true;
@@ -556,11 +528,21 @@ public class MainActivity extends Activity {
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
             }
-        }
-        else {
+        } else {
             setIntent();
         }
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(String.valueOf(RESULT_OK), String.valueOf(resultCode));
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case SETTINGS_RESULT:
+                    updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
+                    updateRecycler();
+            }
+        }
     }
 
     @Override

@@ -54,7 +54,7 @@ public class Weather implements Comparable<Weather> {
         return this.date.getTime()>o.date.getTime()?1:-1;
     }
 
-    public Weather(Activity ctx, Date date, int idDrawable, double temperature, double wind) {
+    public Weather(Date date, int idDrawable, double temperature, double wind) {
         this.date = date;
         this.idDrawable = idDrawable;
         this.temperature = temperature;
@@ -70,6 +70,19 @@ public class Weather implements Comparable<Weather> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public JSONObject getJSONObject(){
+        JSONObject jsonObject = new JSONObject();
+        try{
+            jsonObject.put(DATE,date.getTime());
+            jsonObject.put(ID_DRAWABLE,idDrawable);
+            jsonObject.put(TEMPERATURE,temperature);
+            jsonObject.put(WIND,wind);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
     }
 
     public String getStringDate(String unit) {
@@ -119,18 +132,7 @@ public class Weather implements Comparable<Weather> {
         return String.format("%.2f",wind*2.23694) + " " +unit;
     }
 
-    public JSONObject getJSONObject(){
-        JSONObject jsonObject = new JSONObject();
-        try{
-            jsonObject.put(DATE,date.getTime());
-            jsonObject.put(ID_DRAWABLE,idDrawable);
-            jsonObject.put(TEMPERATURE,temperature);
-            jsonObject.put(WIND,wind);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonObject;
-    }
+
 
 
 }

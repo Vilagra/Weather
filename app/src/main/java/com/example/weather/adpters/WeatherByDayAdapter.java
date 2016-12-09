@@ -76,11 +76,12 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
 
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        holder.date.setText(list.get(position).getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
-        holder.day.setText(list.get(position).getDayOfWeekShort());
-        holder.max.setText(list.get(position).getMaxTString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
-        holder.min.setText(list.get(position).getMinTString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
-        holder.icon.setImageResource(list.get(position).getIdDrawable());
+        WeatherByDay weatherByDay= list.get(position);
+        holder.date.setText(weatherByDay.getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
+        holder.day.setText(weatherByDay.getDayOfWeekShort());
+        holder.max.setText(weatherByDay.getMaxTString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
+        holder.min.setText(weatherByDay.getMinTString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
+        holder.icon.setImageResource(weatherByDay.getIdDrawable());
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

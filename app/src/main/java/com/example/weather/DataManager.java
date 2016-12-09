@@ -85,7 +85,7 @@ public class DataManager {
     }
 
     public void setWeatherByDays(List<Weather> currentWeatherList) {
-        editor.putStringSet(WEATHER_BY_DAYS,getSet(currentWeatherList));
+        editor.putStringSet(WEATHER_BY_DAYS, getWeatherSet(currentWeatherList));
         editor.commit();
     }
 
@@ -104,11 +104,11 @@ public class DataManager {
     }
 
     public void setWeatherByHoursList(List<Weather> weatherByHoursList) {
-        editor.putStringSet(WEATHER_BY_HOURS,getSet(weatherByHoursList));
+        editor.putStringSet(WEATHER_BY_HOURS, getWeatherSet(weatherByHoursList));
         editor.commit();
     }
 
-    public Set<String> getSet(List<Weather> weatherList){
+    public Set<String> getWeatherSet(List<Weather> weatherList){
         Set<String> setWeather=new HashSet<>();
         for (Weather weather : weatherList) {
             setWeather.add(weather.getJSONObject().toString());

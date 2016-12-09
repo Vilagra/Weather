@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Weather</string>
+    <string name="app_name">Погода</string>
     <string name="edit_text">Введите широту</string>
     <string name="edit_shirota">Введите широту в формате ХХ.ХХХХ</string>
     <string name="edit_dolgota">Ввведите долготу в формате XХХ.ХХХХ</string>
@@ -18,11 +18,11 @@
     <string name="windMeasure">м/с</string>
     <string name="celcius">°C</string>
     <string name="isTaken">Иконки взяты с:</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Настройки</string>
     <string name="action_share">Поделится</string>
     <string name="send_to">yyy</string>
 
-    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_settings">Настройки</string>
     <string name="unit">ЕДЕНИЦЫ</string>
     <string name="temperature">Температура</string>
     <string name="mc">м/с</string>
@@ -37,10 +37,10 @@
     <string name="md">ММ:ДД</string>
     <string name="wi_fi">Работать только через Wi-Fi</string>
     <string name="dateFormat">Формат даты</string>
-    <string name="on">ON</string>
-    <string name="off">OFF</string>
+    <string name="on">ВКЛ</string>
+    <string name="off">ВЫКЛ</string>
     <string name="preference">mySattings</string>
-    <string name="apply">Apply</string>
+    <string name="apply">Применить</string>
     <string name="connectionWifiProblem">Подключени по Wi-Fi отсутствует</string>
     <string name="showMap">Показать на карте</string>
     <string name="myData">мои данные</string>

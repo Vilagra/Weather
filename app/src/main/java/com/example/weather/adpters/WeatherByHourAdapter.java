@@ -64,11 +64,12 @@ public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdap
 
     @Override
     public void onBindViewHolder(WeatherByHourAdapter.ViewHolder holder, int position) {
-        holder.date.setText(list.get(position).getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
-        holder.dateHour.setText(list.get(position).getStringHour(sharedPreferences.getString(MainActivity.UNIT_TIME,null)));
-        holder.wind.setText(list.get(position).getWindString(sharedPreferences.getString(MainActivity.UNIT_WIND,null)));
-        holder.temperature.setText(list.get(position).getTemperatureString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
-        holder.icon.setImageResource(list.get(position).getIdDrawable());
+        WeatherByHours weatherByHours = list.get(position);
+        holder.date.setText(weatherByHours.getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
+        holder.dateHour.setText(weatherByHours.getStringHour(sharedPreferences.getString(MainActivity.UNIT_TIME,null)));
+        holder.wind.setText(weatherByHours.getWindString(sharedPreferences.getString(MainActivity.UNIT_WIND,null)));
+        holder.temperature.setText(weatherByHours.getTemperatureString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
+        holder.icon.setImageResource(weatherByHours.getIdDrawable());
 
     }
 }
