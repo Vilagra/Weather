@@ -22,7 +22,7 @@
     <string name="action_share">Поделится</string>
     <string name="send_to">yyy</string>
 
-    <string name="title_activity_settings">Настройки</string>
+    <string name="settings">Настройки</string>
     <string name="unit">ЕДЕНИЦЫ</string>
     <string name="temperature">Температура</string>
     <string name="mc">м/с</string>
