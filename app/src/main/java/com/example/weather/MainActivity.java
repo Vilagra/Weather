@@ -24,6 +24,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -61,7 +62,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private ShareActionProvider shareActionProvider;
     private SharedPreferences sharedPreferences;
@@ -114,19 +115,16 @@ public class MainActivity extends Activity {
         radioGroupV = (RadioGroup) findViewById(R.id.radio_group);
         linkV = (TextView) findViewById(R.id.link);
         dataManager = new DataManager(getSharedPreferences(getString(R.string.myData), Context.MODE_PRIVATE));
-        setPreferences();  //by first start of application sets default preferences; !!!Не знаю где оставлять этот коммент по этому методу тут или над самим методом или там и там? Сделаю в обоих
-        if (dataManager.getCurrentDisplay() != null) { //by screen rotation recovers state by weather object !!!Вначале я сохранял состояние всех вьюшек в бандстейт, но их очень много и я
-            //решил создавать объект, восстанавливать состояние по нему и хранить его в myapplication
+        PreferenceManager.setDefaultValues(this,R.xml.pref,false);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if (dataManager.getCurrentDisplay() != null) {
             updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
             if (savedInstanceState != null) {
                 RadioButton radioButton = (RadioButton) findViewById(savedInstanceState.getInt(RADIOBUTTON_ID));
                 radioButton.setChecked(true);
             }
             updateRecycler();
-        }/* else if (dataManager.getNameOfCity() != null) { //by start of application restores last entered city of the previous start
-            enterCity.setText(sharedPreferences.getString(CITY, null));
-            refreshData();
-        }*/
+        }
         final Button button = (Button) findViewById(R.id.buttonRefresh);
 
         button.setOnClickListener(new OnClickListener() {
@@ -141,54 +139,22 @@ public class MainActivity extends Activity {
 
     }
 
-    //by first start of application sets default preferences;
-    private void setPreferences() {
-        sharedPreferences = getSharedPreferences(getString(R.string.preference), Context.MODE_PRIVATE);
-        if (sharedPreferences.getBoolean("isCustomized", false) == false) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(UNIT_TEMPRATURE, getString(R.string.celcius));
-            editor.putString(UNIT_WIND, getString(R.string.mc));
-            editor.putString(UNIT_TIME, getString(R.string.h24));
-            editor.putString(UNIT_DATE, getString(R.string.dm));
-            editor.putString(WIFI, getString(R.string.on));
-            editor.putBoolean("isCustomized", true);
-            editor.commit();
-        }
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(RADIOBUTTON_ID, radioGroupV.getCheckedRadioButtonId());
-        //SharedPreferences.Editor editor = sharedPreferences.edit();
-        //editor.putString(CITY, myApplication.getNameOfCity()); //before application closes, saves last city  !!!я не уверен что делаю это в правильном месте
-        //editor.commit();
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        menu.findItem(R.id.settings).setIntent(new Intent(this,SettingsActivity.class));
         menuShareItem = menu.findItem(R.id.action_share);
         shareActionProvider = (ShareActionProvider) menuShareItem.getActionProvider();
         checkPermission();
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.settings:
-                Intent intent = new Intent(this, Settings.class);
-                startActivityForResult(intent, SETTINGS_RESULT);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    //sets default intent for shareActionProvider  !!!вот тут я вобще не уверен, я делал приблизительно как в книге, я устанавливаю провайдер в который устанавливаю интент с битмапом скрина
-    // экрана,которому при каждом обновлении экрана устанавливаю битмап, после этого стало заметно притормаживать, думаю лучше делать это только при необходимости и без этого провайдера, но оставил так
-    // потому что в книге так, может, ты мне расскажешь, зачем так делается
     private void setIntent() {
         Bitmap bitmap = getBitmapFromView((LinearLayout) findViewById(R.id.main));
         Intent intent = new Intent(Intent.ACTION_SEND);
@@ -197,7 +163,6 @@ public class MainActivity extends Activity {
         shareActionProvider.setShareIntent(intent);
     }
 
-    //next 2 methods I googled in order to get screenshot
     private Bitmap getBitmapFromView(LinearLayout view) {
         try {
             view.setDrawingCacheEnabled(true);
@@ -228,7 +193,6 @@ public class MainActivity extends Activity {
     }
 
     public void refreshData() {
-        //dataManager.setNameOfCity(enterCity.getText().toString());
         if (checkConnection()) {
             new GetLatLongAsyncTask().execute(enterCity.getText().toString().replaceAll(" ", "%20"));
         }
@@ -239,11 +203,11 @@ public class MainActivity extends Activity {
             city = city.substring(0, 1).toUpperCase() + city.substring(1);
         }
         cityV.setText(city);
-        temperatureV.setText(currentDisplayedWeather.getTemperatureString(sharedPreferences.getString(UNIT_TEMPRATURE, null)));
+        temperatureV.setText(currentDisplayedWeather.getTemperatureString(sharedPreferences.getString(getString(R.string.temperature), null)));
         locationV.setText(location);
         descriptionV.setText(currentDisplayedWeather.getSummary());
         humidityV.setText(getString(R.string.humidity) + " " + currentDisplayedWeather.getHumidityString());
-        windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString(sharedPreferences.getString(UNIT_WIND, null)));
+        windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString(sharedPreferences.getString(getString(R.string.wind_speed), null)));
         pictureV.setImageResource(currentDisplayedWeather.getIdDrawable());
         probabilityV.setText(getString(R.string.probability) + " " + currentDisplayedWeather.getPrecipProbString());
         dayOfWeekV.setText(currentDisplayedWeather.getDayOfWeekLong());
@@ -260,7 +224,7 @@ public class MainActivity extends Activity {
         RecyclerView.Adapter adapter = null;
         switch (id) {
             case R.id.byDay:
-                adapter = new WeatherByDayAdapter(dataManager.getWeatherByDays(), sharedPreferences);
+                adapter = new WeatherByDayAdapter(getApplicationContext(),dataManager.getWeatherByDays(), sharedPreferences);
                 ((WeatherByDayAdapter) adapter).setListener(new WeatherByDayAdapter.Listener() {
                     @Override
                     public void onClick(int position) {
@@ -271,7 +235,7 @@ public class MainActivity extends Activity {
                 });
                 break;
             case R.id.byHour:
-                adapter = new WeatherByHourAdapter(dataManager.getWeatherByHoursList(), sharedPreferences);
+                adapter = new WeatherByHourAdapter(getApplicationContext(),dataManager.getWeatherByHoursList(), sharedPreferences);
                 break;
         }
         recycler.setAdapter(adapter);
@@ -289,11 +253,8 @@ public class MainActivity extends Activity {
         startActivity(mapIntent);
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
 
-    }
+
 
     public class GetWeatherAsyncTask extends AsyncTask<String, Void, Void> {
 
@@ -489,10 +450,10 @@ public class MainActivity extends Activity {
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        String onlyWiFi = sharedPreferences.getString(WIFI, null);
-        if (onlyWiFi.equals(getString(R.string.off)) && networkInfo != null && networkInfo.isConnected()) {
+        Boolean onlyWiFi = sharedPreferences.getBoolean(getString(R.string.wifi), false);
+        if (!onlyWiFi && networkInfo != null && networkInfo.isConnected()) {
             return true;
-        } else if (onlyWiFi.equals(getString(R.string.on))) {
+        } else if (onlyWiFi) {
             NetworkInfo networkInfoWiFi = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             if (networkInfo.isConnected() && networkInfoWiFi != null && networkInfoWiFi.isConnected()) {
                 return true;
@@ -543,6 +504,23 @@ public class MainActivity extends Activity {
                     updateRecycler();
             }
         }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+       sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+/*    @Override
+    protected void onPause() {
+        super.onPause();
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }*/
+
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
+        updateRecycler();
     }
 
     @Override

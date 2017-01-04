@@ -1,5 +1,6 @@
 package com.example.weather.adpters;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -22,8 +23,10 @@ import java.util.List;
 public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdapter.ViewHolder> {
     List<WeatherByHours> list;
     SharedPreferences sharedPreferences;
+    Context ctx;
 
-    public WeatherByHourAdapter(List<WeatherByHours> list,SharedPreferences sharedPreferences) {
+    public WeatherByHourAdapter(Context ctx,List<WeatherByHours> list, SharedPreferences sharedPreferences) {
+        this.ctx=ctx;
         this.list = list;
         this.sharedPreferences=sharedPreferences;
     }
@@ -65,10 +68,10 @@ public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdap
     @Override
     public void onBindViewHolder(WeatherByHourAdapter.ViewHolder holder, int position) {
         WeatherByHours weatherByHours = list.get(position);
-        holder.date.setText(weatherByHours.getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
-        holder.dateHour.setText(weatherByHours.getStringHour(sharedPreferences.getString(MainActivity.UNIT_TIME,null)));
-        holder.wind.setText(weatherByHours.getWindString(sharedPreferences.getString(MainActivity.UNIT_WIND,null)));
-        holder.temperature.setText(weatherByHours.getTemperatureString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
+        holder.date.setText(weatherByHours.getStringDate(sharedPreferences.getString(ctx.getString(R.string.dateFormat),null)));
+        holder.dateHour.setText(weatherByHours.getStringHour(sharedPreferences.getString(ctx.getString(R.string.time_format),null)));
+        holder.wind.setText(weatherByHours.getWindString(sharedPreferences.getString(ctx.getString(R.string.wind_speed),null)));
+        holder.temperature.setText(weatherByHours.getTemperatureString(sharedPreferences.getString(ctx.getString(R.string.temperature),null)));
         holder.icon.setImageResource(weatherByHours.getIdDrawable());
 
     }

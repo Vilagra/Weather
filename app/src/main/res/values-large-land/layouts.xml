@@ -3,7 +3,6 @@
     <item name="activity_main" type="layout">@layout/activity_main2</item>
     <item name="card_weather_by_day" type="layout">@layout/card_weather_by_day2</item>
     <item name="card_weather_by_hour" type="layout">@layout/card_weather_by_hour2</item>
-    <item name="activity_settings" type="layout">@layout/settings2</item>
 
 
 </resources>

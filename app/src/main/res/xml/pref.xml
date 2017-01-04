@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:key="pref_key_storage_settings"
+        android:title="@string/unit">
+        <ListPreference
+            android:defaultValue="@string/celcius"
+            android:dialogTitle="@string/temperature"
+            android:entries="@array/pref_syncTemperatureTypes_entries"
+            android:entryValues="@array/pref_syncTemperatureTypes_entries"
+            android:key="@string/temperature"
+            android:summary="%s"
+            android:title="@string/temperature" />
+
+        <ListPreference
+            android:defaultValue="@string/mc"
+            android:dialogTitle="@string/wind_speed"
+            android:entries="@array/pref_syncWindTypes_entries"
+            android:entryValues="@array/pref_syncWindTypes_entries"
+            android:key="@string/wind_speed"
+            android:summary="%s"
+            android:title="@string/wind_speed" />
+
+        <ListPreference
+            android:defaultValue="@string/dm"
+            android:dialogTitle="@string/dateFormat"
+            android:entries="@array/pref_syncDateFormat_entries"
+            android:entryValues="@array/pref_syncDateFormat_entries"
+            android:key="@string/dateFormat"
+            android:summary="%s"
+            android:title="@string/dateFormat" />
+
+        <ListPreference
+            android:defaultValue="@string/h24"
+            android:dialogTitle="@string/time_format"
+            android:entries="@array/pref_TimeTypes_entries"
+            android:entryValues="@array/pref_TimeTypes_entries"
+            android:key="@string/time_format"
+            android:summary="%s"
+            android:title="@string/time_format" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="pref_key_storage_settings"
+        android:title="@string/network">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/wifi"
+            android:summary="@string/wi_fi"
+            android:title="@string/wifi" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

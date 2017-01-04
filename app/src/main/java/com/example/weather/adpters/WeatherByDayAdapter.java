@@ -1,5 +1,6 @@
 package com.example.weather.adpters;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +24,7 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
 
     List<WeatherByDay> list;
     SharedPreferences sharedPreferences;
+    Context ctx;
     private Listener listener;
 
     public static interface Listener{
@@ -33,7 +35,8 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
         this.listener = listener;
     }
 
-    public WeatherByDayAdapter(List<WeatherByDay> list,SharedPreferences sharedPreferences) {
+    public WeatherByDayAdapter(Context ctx,List<WeatherByDay> list,SharedPreferences sharedPreferences) {
+        this.ctx=ctx;
         this.list = list;
         this.sharedPreferences=sharedPreferences;
     }
@@ -77,10 +80,10 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         WeatherByDay weatherByDay= list.get(position);
-        holder.date.setText(weatherByDay.getStringDate(sharedPreferences.getString(MainActivity.UNIT_DATE,null)));
+        holder.date.setText(weatherByDay.getStringDate(sharedPreferences.getString(ctx.getString(R.string.dateFormat),null)));
         holder.day.setText(weatherByDay.getDayOfWeekShort());
-        holder.max.setText(weatherByDay.getMaxTString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
-        holder.min.setText(weatherByDay.getMinTString(sharedPreferences.getString(MainActivity.UNIT_TEMPRATURE,null)));
+        holder.max.setText(weatherByDay.getMaxTString(sharedPreferences.getString(ctx.getString(R.string.temperature),null)));
+        holder.min.setText(weatherByDay.getMinTString(sharedPreferences.getString(ctx.getString(R.string.temperature),null)));
         holder.icon.setImageResource(weatherByDay.getIdDrawable());
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override

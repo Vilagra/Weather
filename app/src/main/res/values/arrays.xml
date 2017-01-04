@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_syncTemperatureTypes_entries">
+        <item>@string/farengeit</item>
+        <item>@string/celcius</item>
+    </string-array>
+
+    <string-array name="pref_syncWindTypes_entries">
+        <item>@string/mc</item>
+        <item>@string/km.h</item>
+        <item>@string/m.h</item>
+    </string-array>
+
+    <string-array name="pref_syncDateFormat_entries" >
+        <item>@string/dm</item>
+        <item>@string/md</item>
+    </string-array>
+
+    <string-array name="pref_TimeTypes_entries" >
+        <item>@string/h12</item>
+        <item>@string/h24</item>
+    </string-array>
+
+</resources>
