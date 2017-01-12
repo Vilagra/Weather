@@ -266,6 +266,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         @Override
         protected Void doInBackground(String... params) {
             try {
+                this.hashCode();
                 JSONObject jsonObject = new JSONObject(getData(params[0]));
                 JSONObject currently = jsonObject.getJSONObject("currently");
                 Date date = new Date(currently.getLong("time") * 1000);

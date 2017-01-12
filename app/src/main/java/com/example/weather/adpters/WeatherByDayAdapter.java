@@ -27,8 +27,8 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
     Context ctx;
     private Listener listener;
 
-    public static interface Listener{
-        public void onClick(int position);
+    public interface Listener{
+        void onClick(int position);
     }
 
     public void setListener(Listener listener){
