@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.example.weather.R;
+import com.google.gson.annotations.SerializedName;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,15 +19,16 @@ import java.util.Date;
 public class CurrentDisplayedWeather extends Weather{
 
     public static final String HUMIDITY = "humidity";
-    public static final String PRECIP = "precip";
+    public static final String PRECIP = "precipProb";
     public static final String SUMMARY = "summary";
 
     private double humidity;
+    @SerializedName("precipProbability")
     private double precipProb;
     private String summary;
 
-    public CurrentDisplayedWeather(Date date, String summary, int idDrawable, double temperature, double wind, double humidty, double precipProb) {
-        super(date,idDrawable,temperature,wind);
+    public CurrentDisplayedWeather(long time, String summary, int idDrawable, double temperature, double wind, double humidty, double precipProb) {
+        super(time,idDrawable,temperature,wind);
         this.humidity=humidty;
         this.precipProb=precipProb;
         this.summary=summary;

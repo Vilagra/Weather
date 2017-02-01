@@ -56,6 +56,8 @@ import com.example.weather.entity.CurrentDisplayedWeather;
 import com.example.weather.entity.Weather;
 import com.example.weather.entity.WeatherByDay;
 import com.example.weather.entity.WeatherByHours;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 
 import org.json.JSONArray;
@@ -208,7 +210,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         descriptionV.setText(currentDisplayedWeather.getSummary());
         humidityV.setText(getString(R.string.humidity) + " " + currentDisplayedWeather.getHumidityString());
         windV.setText(getString(R.string.wind_speed) + " " + currentDisplayedWeather.getWindString(sharedPreferences.getString(getString(R.string.wind_speed), null)));
-        pictureV.setImageResource(currentDisplayedWeather.getIdDrawable());
+        pictureV.setImageResource(currentDisplayedWeather.getIdDrawable(getBaseContext()));
         probabilityV.setText(getString(R.string.probability) + " " + currentDisplayedWeather.getPrecipProbString());
         dayOfWeekV.setText(currentDisplayedWeather.getDayOfWeekLong());
         linkV.setText(Html.fromHtml("<a href=\"https://icons8.com/web-app/3350/Clouds\">Clouds icon credits</a>"));
@@ -228,7 +230,9 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 ((WeatherByDayAdapter) adapter).setListener(new WeatherByDayAdapter.Listener() {
                     @Override
                     public void onClick(int position) {
-                        CurrentDisplayedWeather currentDisplayedWeather = dataManager.getWeatherByDays().get(position);
+                        WeatherByDay weatherByDay=dataManager.getWeatherByDays().get(position);
+                        CurrentDisplayedWeather currentDisplayedWeather = weatherByDay;
+                        currentDisplayedWeather.setTemperature(weatherByDay.getMaxT());
                         dataManager.setCurrentDisplay(currentDisplayedWeather);
                         updateView(dataManager.getNameOfCity(), currentDisplayedWeather, dataManager.getLocation());
                     }
@@ -266,44 +270,19 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         @Override
         protected Void doInBackground(String... params) {
             try {
-                this.hashCode();
                 JSONObject jsonObject = new JSONObject(getData(params[0]));
                 JSONObject currently = jsonObject.getJSONObject("currently");
-                Date date = new Date(currently.getLong("time") * 1000);
-                Double temperature = currently.getDouble("temperature");
-                String description = currently.getString("summary");
-                Double humidity = currently.getDouble("humidity");
-                Double wind = currently.getDouble("windSpeed");
-                Double probability = currently.getDouble("precipProbability");
-                int icon = getResources().getIdentifier(currently.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
-                CurrentDisplayedWeather currentDisplayedWeather = new CurrentDisplayedWeather( date, description, icon, temperature, wind, humidity, probability);
+                Gson gson = new Gson();
+                CurrentDisplayedWeather currentDisplayedWeather = gson.fromJson(currently.toString(),CurrentDisplayedWeather.class);
                 dataManager.setCurrentDisplay(currentDisplayedWeather);
-                List<Weather> weatherByDayList = new ArrayList<>();
-                List<Weather> weatherByHoursList = new ArrayList<>();
                 JSONObject dailly = jsonObject.getJSONObject("daily");
                 JSONArray daillArray = dailly.getJSONArray("data");
-                for (int i = 0; i < daillArray.length(); i++) {
-                    JSONObject data = daillArray.getJSONObject(i);
-                    date = new Date(data.getLong("time") * 1000);
-                    icon = getResources().getIdentifier(data.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
-                    Double maxT = data.getDouble("temperatureMax");
-                    Double minT = data.getDouble("temperatureMin");
-                    wind = data.getDouble("windSpeed");
-                    humidity = data.getDouble("humidity");
-                    probability = data.getDouble("precipProbability");
-                    description = currently.getString("summary");
-                    weatherByDayList.add(new WeatherByDay(date, description, icon, maxT, minT, wind, humidity, probability));
-                }
+                List<Weather> weatherByDayList = gson.fromJson(daillArray.toString(), new TypeToken<ArrayList<WeatherByDay>>(){}.getType());
                 JSONObject hourly = jsonObject.getJSONObject("hourly");
                 JSONArray hourlyArray = hourly.getJSONArray("data");
-                for (int i = 0; i < hourlyArray.length(); i++) {
-                    JSONObject data = hourlyArray.getJSONObject(i);
-                    date = new Date(data.getLong("time") * 1000);
-                    icon = getResources().getIdentifier(data.getString("icon").replaceAll("-", ""), "drawable", "com.example.weather");
-                    wind = data.getDouble("windSpeed");
-                    temperature = data.getDouble("temperature");
-                    weatherByHoursList.add(new WeatherByHours(date, icon, temperature, wind));
-                }
+                List<Weather> weatherByHoursList = gson.fromJson(hourlyArray.toString(), new TypeToken<ArrayList<WeatherByHours>>(){}.getType());
+                Log.d("jsondail",daillArray.toString());
+                Log.d("jsonhour",hourlyArray.toString());
                 dataManager.setWeatherByDays(weatherByDayList);
                 dataManager.setWeatherByHoursList(weatherByHoursList);
             } catch (JSONException e) {

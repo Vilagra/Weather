@@ -1,17 +1,15 @@
 package com.example.weather.entity;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.util.Log;
 
-import com.example.weather.MainActivity;
-import com.example.weather.R;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
 import java.util.Date;
 
 /**
@@ -20,12 +18,18 @@ import java.util.Date;
 
 public class Weather implements Comparable<Weather> {
 
-    private Date date;
+    private long time;
     private int idDrawable;
+    private String icon;
     private double temperature;
+    @SerializedName("windSpeed")
     private double wind;
 
-    public static final String DATE = "date";
+    public void setTemperature(double temperature) {
+        this.temperature = temperature;
+    }
+
+    public static final String DATE = "time";
     public static final String ID_DRAWABLE = "idDrawable";
     public static final String TEMPERATURE = "temperature";
     public static final String WIND = "wind";
@@ -37,13 +41,13 @@ public class Weather implements Comparable<Weather> {
 
         Weather weather = (Weather) o;
 
-        return date.equals(weather.date);
+        return time ==weather.time;
 
     }
 
     @Override
     public int hashCode() {
-        return date.hashCode();
+        return (int) time;
     }
 
     @Override
@@ -51,11 +55,11 @@ public class Weather implements Comparable<Weather> {
         if(this.equals(o)){
             return 0;
         }
-        return this.date.getTime()>o.date.getTime()?1:-1;
+        return this.time >o.time ?1:-1;
     }
 
-    public Weather(Date date, int idDrawable, double temperature, double wind) {
-        this.date = date;
+    public Weather(Long time, int idDrawable, double temperature, double wind) {
+        this.time = time;
         this.idDrawable = idDrawable;
         this.temperature = temperature;
         this.wind=wind;
@@ -63,7 +67,7 @@ public class Weather implements Comparable<Weather> {
 
     public Weather(JSONObject jsonObject) {
         try {
-            date=new Date(jsonObject.getLong(DATE));
+            time =jsonObject.getLong(DATE);
             idDrawable=jsonObject.getInt(ID_DRAWABLE);
             temperature=jsonObject.getDouble(TEMPERATURE);
             wind=jsonObject.getDouble(WIND);
@@ -73,9 +77,11 @@ public class Weather implements Comparable<Weather> {
     }
 
     public JSONObject getJSONObject(){
+        Gson gson = new Gson();
+        Log.d("my_log",gson.toJson(this));
         JSONObject jsonObject = new JSONObject();
         try{
-            jsonObject.put(DATE,date.getTime());
+            jsonObject.put(DATE, time);
             jsonObject.put(ID_DRAWABLE,idDrawable);
             jsonObject.put(TEMPERATURE,temperature);
             jsonObject.put(WIND,wind);
@@ -87,36 +93,42 @@ public class Weather implements Comparable<Weather> {
 
     public String getStringDate(String unit) {
         if(unit.equals("ДД:ММ")) {
-            return new SimpleDateFormat("dd.MM").format(date.getTime());
+            return new SimpleDateFormat("dd.MM").format(getTime().getTime());
         }
-        return new SimpleDateFormat("MM.dd").format(date.getTime());
+        return new SimpleDateFormat("MM.dd").format(getTime().getTime());
     }
 
     public String getStringHour(String unit) {
         if(unit.equals("24 час")) {
-            return new SimpleDateFormat("HH:mm").format(getDate().getTime());
+            return new SimpleDateFormat("HH:mm").format(getTime().getTime());
         }
-        return new SimpleDateFormat("hh:mm a").format(getDate().getTime());
+        return new SimpleDateFormat("hh:mm a").format(getTime().getTime());
     }
 
     public String getDayOfWeekShort(){
-        return new SimpleDateFormat("EE").format(getDate().getTime());
+        return new SimpleDateFormat("EE").format(getTime().getTime());
     }
 
     public String getDayOfWeekLong(){
-        String day=new SimpleDateFormat("EEEE").format(getDate().getTime());
+        String day=new SimpleDateFormat("EEEE").format(getTime().getTime());
         return day.substring(0, 1).toUpperCase() + day.substring(1);
     }
 
-    public Date getDate() {
-        return date;
+    public Date getTime() {
+        return new Date(time *1000);
     }
 
-    public int getIdDrawable() {
+    public int getIdDrawable(Context context) {
+        if(idDrawable==0){
+            idDrawable=context.getResources().getIdentifier(icon.replaceAll("-", ""), "drawable", "com.example.weather");
+        }
         return idDrawable;
     }
 
     public String getTemperatureString(String unit) {
+        return getTemperatureString(unit,temperature);
+    }
+    public String getTemperatureString(String unit,double temperature) {
         if(unit.equals("°C")){
             return Math.round(temperature)+ unit;
         }
@@ -131,8 +143,6 @@ public class Weather implements Comparable<Weather> {
         }
         return String.format("%.2f",wind*2.23694) + " " +unit;
     }
-
-
 
 
 }

@@ -1,11 +1,14 @@
 package com.example.weather;
 
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.example.weather.entity.CurrentDisplayedWeather;
 import com.example.weather.entity.Weather;
 import com.example.weather.entity.WeatherByDay;
 import com.example.weather.entity.WeatherByHours;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,10 +32,12 @@ public class DataManager {
 
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    Gson gson;
 
     public DataManager(SharedPreferences sharedPreferences) {
         this.sharedPreferences = sharedPreferences;
         editor = sharedPreferences.edit();
+        gson=new Gson();
     }
 
     public String getLocation() {
@@ -55,23 +60,25 @@ public class DataManager {
 
     public CurrentDisplayedWeather getCurrentDisplay() {
         String s = sharedPreferences.getString(CURRENT_DISPLAY,null);
-        if(s!=null) {
+        return gson.fromJson(s,CurrentDisplayedWeather.class);
+/*        if(s!=null) {
             try {
                 return new CurrentDisplayedWeather(new JSONObject(s));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        return null;
+        return null;*/
     }
 
     public void setCurrentDisplay(CurrentDisplayedWeather currentDisplay) {
-        editor.putString(CURRENT_DISPLAY,currentDisplay.getJSONObject().toString());
+        //editor.putString(CURRENT_DISPLAY,currentDisplay.getJSONObject().toString());
+        editor.putString(CURRENT_DISPLAY,new Gson().toJson(currentDisplay));
         editor.commit();
     }
 
     public List<WeatherByDay> getWeatherByDays() {
-        Set<String> setWeather= sharedPreferences.getStringSet(WEATHER_BY_DAYS,null);
+/*        Set<String> setWeather= sharedPreferences.getStringSet(WEATHER_BY_DAYS,null);
         List<WeatherByDay> weatherByDays = new ArrayList<>();
         for (String s : setWeather) {
             try {
@@ -81,16 +88,19 @@ public class DataManager {
             }
         }
         Collections.sort(weatherByDays);
-        return weatherByDays;
+        return weatherByDays;*/
+        String s = sharedPreferences.getString(WEATHER_BY_DAYS,null);
+        return gson.fromJson(s,new TypeToken<List<WeatherByDay>>(){}.getType());
     }
 
     public void setWeatherByDays(List<Weather> currentWeatherList) {
-        editor.putStringSet(WEATHER_BY_DAYS, getWeatherSet(currentWeatherList));
+        //editor.putStringSet(WEATHER_BY_DAYS, getWeatherSet(currentWeatherList));
+        editor.putString(WEATHER_BY_DAYS, new Gson().toJson(currentWeatherList));
         editor.commit();
     }
 
     public List<WeatherByHours> getWeatherByHoursList() {
-        Set<String> setWeather= sharedPreferences.getStringSet(WEATHER_BY_HOURS,null);
+  /*      Set<String> setWeather= sharedPreferences.getStringSet(WEATHER_BY_HOURS,null);
         List<WeatherByHours> weatherByHours = new ArrayList<>();
         for (String s : setWeather) {
             try {
@@ -100,11 +110,14 @@ public class DataManager {
             }
         }
         Collections.sort(weatherByHours);
-        return weatherByHours;
+        return weatherByHours;*/
+        String s = sharedPreferences.getString(WEATHER_BY_HOURS,null);
+        return gson.fromJson(s,new TypeToken<List<WeatherByHours>>(){}.getType());
     }
 
     public void setWeatherByHoursList(List<Weather> weatherByHoursList) {
-        editor.putStringSet(WEATHER_BY_HOURS, getWeatherSet(weatherByHoursList));
+        //editor.putStringSet(WEATHER_BY_HOURS, getWeatherSet(weatherByHoursList));
+        editor.putString(WEATHER_BY_HOURS, new Gson().toJson(weatherByHoursList));
         editor.commit();
     }
 

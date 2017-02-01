@@ -72,7 +72,7 @@ public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdap
         holder.dateHour.setText(weatherByHours.getStringHour(sharedPreferences.getString(ctx.getString(R.string.time_format),null)));
         holder.wind.setText(weatherByHours.getWindString(sharedPreferences.getString(ctx.getString(R.string.wind_speed),null)));
         holder.temperature.setText(weatherByHours.getTemperatureString(sharedPreferences.getString(ctx.getString(R.string.temperature),null)));
-        holder.icon.setImageResource(weatherByHours.getIdDrawable());
+        holder.icon.setImageResource(weatherByHours.getIdDrawable(ctx));
 
     }
 }

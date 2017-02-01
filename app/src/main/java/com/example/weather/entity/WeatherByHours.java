@@ -17,7 +17,7 @@ import java.util.Date;
 //  И второй вопрос в жсоне что по дням, что по часам выдает в принципе одинаковый список параметров, но я вывожу разные параметры, одни когда по дням, и немного другие когда по часам
  //   и отсюда вопрос стоит ли делать подобную иерархию типа моей, или может создать один класс который будет считывать все параметры(в случае с почасовым лишние),просто лишние, выходит, не будут использываться
 public class WeatherByHours extends Weather{
-    public WeatherByHours( Date date, int idDrawable, double temperature, double wind) {
+    public WeatherByHours( long date, int idDrawable, double temperature, double wind) {
         super(date, idDrawable, temperature, wind);
     }
 
