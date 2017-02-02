@@ -3,6 +3,7 @@ package com.example.weather;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -52,6 +53,7 @@ import android.widget.Toast;
 
 import com.example.weather.adpters.WeatherByDayAdapter;
 import com.example.weather.adpters.WeatherByHourAdapter;
+import com.example.weather.api.WeatherApi;
 import com.example.weather.entity.CurrentDisplayedWeather;
 import com.example.weather.entity.Weather;
 import com.example.weather.entity.WeatherByDay;
@@ -64,20 +66,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Response;
+
 public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private ShareActionProvider shareActionProvider;
     private SharedPreferences sharedPreferences;
     private DataManager dataManager;
-
-    public static boolean refreshDisplay;
-
-    public static final String UNIT_TEMPRATURE = "unitTemperature";
-    public static final String UNIT_WIND = "unitWind";
-    public static final String UNIT_TIME = "unitTime";
-    public static final String UNIT_DATE = "unitDate";
-    public static final String WIFI = "wifi";
-
+    
 
     public final String RADIOBUTTON_ID = "radoButtonId";
     private final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 75443;
@@ -260,7 +258,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
 
 
-    public class GetWeatherAsyncTask extends AsyncTask<String, Void, Void> {
+    public class GetWeatherAsyncTask extends AsyncTask<String[], Void, Void> {
 
         @Override
         protected void onProgressUpdate(Void... values) {
@@ -268,9 +266,20 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         }
 
         @Override
-        protected Void doInBackground(String... params) {
+        protected Void doInBackground(String[]... params) {
             try {
-                JSONObject jsonObject = new JSONObject(getData(params[0]));
+                String[] strings = params[0];
+                WeatherApi weatherApi = App.getApi();
+                Call<ResponseBody> call=weatherApi.getData(strings[1],strings[0],"si","ru");
+                ResponseBody responseBody = call.execute().body();
+                InputStreamReader inputStream = new InputStreamReader(responseBody.byteStream());
+                StringBuilder res = new StringBuilder("");
+                char[] bytesBuffer = new char[1024];
+                int read;
+                while ((read = inputStream.read(bytesBuffer)) != -1) {
+                    res.append(bytesBuffer, 0, read);
+                }
+                JSONObject jsonObject = new JSONObject(res.toString());
                 JSONObject currently = jsonObject.getJSONObject("currently");
                 Gson gson = new Gson();
                 CurrentDisplayedWeather currentDisplayedWeather = gson.fromJson(currently.toString(),CurrentDisplayedWeather.class);
@@ -281,11 +290,11 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 JSONObject hourly = jsonObject.getJSONObject("hourly");
                 JSONArray hourlyArray = hourly.getJSONArray("data");
                 List<Weather> weatherByHoursList = gson.fromJson(hourlyArray.toString(), new TypeToken<ArrayList<WeatherByHours>>(){}.getType());
-                Log.d("jsondail",daillArray.toString());
-                Log.d("jsonhour",hourlyArray.toString());
                 dataManager.setWeatherByDays(weatherByDayList);
                 dataManager.setWeatherByHoursList(weatherByHoursList);
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             return null;
@@ -298,45 +307,13 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             updateRecycler();
         }
 
-        public String getData(String urlsite) {
-            StringBuilder res = new StringBuilder("");
-            InputStreamReader inputStream = null;
-            try {
-                URL url = new URL(urlsite);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setReadTimeout(10_000);
-                conn.setConnectTimeout(15_000);
-                conn.setRequestMethod("GET");
-                conn.setDoInput(true);
-                conn.connect();
-                inputStream = new InputStreamReader(conn.getInputStream());
-                char[] bytesBuffer = new char[1024];
-                int read;
-                while ((read = inputStream.read(bytesBuffer)) != -1) {
-                    res.append(bytesBuffer, 0, read);
-                }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-                Toast.makeText(MainActivity.this, getResources().getString(R.string.connectionProblem), Toast.LENGTH_LONG).show();
-            } finally {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return res.toString();
-        }
 
 
     }
 
     //this async task finds latitude, longitude by cityName in google maps and passes them to getWeatherAsyncTask
     public class GetLatLongAsyncTask extends
-            AsyncTask<String, Void, String> {
+            AsyncTask<String, Void, String[]> {
 
         @Override
         protected void onCancelled() {
@@ -345,7 +322,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
             InputStreamReader in = null;
             String place = params[0];
             Log.e("CITY", Arrays.toString(params));
@@ -372,6 +349,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                     return null;
                 }
                 JSONObject jsonObj = new JSONObject(result.toString());
+                Log.d("jsonLOc",jsonObj.toString());
                 JSONArray resultJsonArray = jsonObj.getJSONArray("results");
                 JSONObject before_geometry_jsonObj = resultJsonArray.getJSONObject(0);
                 JSONObject geometry_jsonObj = before_geometry_jsonObj.getJSONObject("geometry");
@@ -381,7 +359,10 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 dataManager.setLocation(before_geometry_jsonObj.getString("formatted_address"));
                 dataManager.setNameOfCity(dataManager.getLocation().split(",")[0]);
                 if (longitude != null && latitude != null) {
-                    return getUrl(latitude,longitude);
+                    String[] strings = new String[2];
+                    strings[0]=longitude;
+                    strings[1]=latitude;
+                    return strings;
                 }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -401,7 +382,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(String[] s) {
             super.onPostExecute(s);
             if (s==null) {
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.unncorrect), Toast.LENGTH_LONG).show();
