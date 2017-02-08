@@ -61,71 +61,31 @@ public class DataManager {
     public CurrentDisplayedWeather getCurrentDisplay() {
         String s = sharedPreferences.getString(CURRENT_DISPLAY,null);
         return gson.fromJson(s,CurrentDisplayedWeather.class);
-/*        if(s!=null) {
-            try {
-                return new CurrentDisplayedWeather(new JSONObject(s));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;*/
     }
 
     public void setCurrentDisplay(CurrentDisplayedWeather currentDisplay) {
-        //editor.putString(CURRENT_DISPLAY,currentDisplay.getJSONObject().toString());
         editor.putString(CURRENT_DISPLAY,new Gson().toJson(currentDisplay));
         editor.commit();
     }
 
     public List<WeatherByDay> getWeatherByDays() {
-/*        Set<String> setWeather= sharedPreferences.getStringSet(WEATHER_BY_DAYS,null);
-        List<WeatherByDay> weatherByDays = new ArrayList<>();
-        for (String s : setWeather) {
-            try {
-                weatherByDays.add(new WeatherByDay(new JSONObject(s)));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        Collections.sort(weatherByDays);
-        return weatherByDays;*/
         String s = sharedPreferences.getString(WEATHER_BY_DAYS,null);
         return gson.fromJson(s,new TypeToken<List<WeatherByDay>>(){}.getType());
     }
 
     public void setWeatherByDays(List<Weather> currentWeatherList) {
-        //editor.putStringSet(WEATHER_BY_DAYS, getWeatherSet(currentWeatherList));
         editor.putString(WEATHER_BY_DAYS, new Gson().toJson(currentWeatherList));
         editor.commit();
     }
 
     public List<WeatherByHours> getWeatherByHoursList() {
-  /*      Set<String> setWeather= sharedPreferences.getStringSet(WEATHER_BY_HOURS,null);
-        List<WeatherByHours> weatherByHours = new ArrayList<>();
-        for (String s : setWeather) {
-            try {
-                weatherByHours.add(new WeatherByHours(new JSONObject(s)));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        Collections.sort(weatherByHours);
-        return weatherByHours;*/
         String s = sharedPreferences.getString(WEATHER_BY_HOURS,null);
         return gson.fromJson(s,new TypeToken<List<WeatherByHours>>(){}.getType());
     }
 
     public void setWeatherByHoursList(List<Weather> weatherByHoursList) {
-        //editor.putStringSet(WEATHER_BY_HOURS, getWeatherSet(weatherByHoursList));
         editor.putString(WEATHER_BY_HOURS, new Gson().toJson(weatherByHoursList));
         editor.commit();
     }
 
-    public Set<String> getWeatherSet(List<Weather> weatherList){
-        Set<String> setWeather=new HashSet<>();
-        for (Weather weather : weatherList) {
-            setWeather.add(weather.getJSONObject().toString());
-        }
-        return setWeather;
-    }
 }

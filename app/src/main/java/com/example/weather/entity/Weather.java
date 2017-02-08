@@ -64,33 +64,6 @@ public class Weather implements Comparable<Weather> {
         this.temperature = temperature;
         this.wind=wind;
     }
-
-    public Weather(JSONObject jsonObject) {
-        try {
-            time =jsonObject.getLong(DATE);
-            idDrawable=jsonObject.getInt(ID_DRAWABLE);
-            temperature=jsonObject.getDouble(TEMPERATURE);
-            wind=jsonObject.getDouble(WIND);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public JSONObject getJSONObject(){
-        Gson gson = new Gson();
-        Log.d("my_log",gson.toJson(this));
-        JSONObject jsonObject = new JSONObject();
-        try{
-            jsonObject.put(DATE, time);
-            jsonObject.put(ID_DRAWABLE,idDrawable);
-            jsonObject.put(TEMPERATURE,temperature);
-            jsonObject.put(WIND,wind);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonObject;
-    }
-
     public String getStringDate(String unit) {
         if(unit.equals("ДД:ММ")) {
             return new SimpleDateFormat("dd.MM").format(getTime().getTime());

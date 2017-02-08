@@ -16,6 +16,9 @@ import com.example.weather.entity.WeatherByDay;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by Vilagra on 11.11.2016.
  */
@@ -43,21 +46,22 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
 
     public static class  ViewHolder extends RecyclerView.ViewHolder{
         CardView cardView;
+        @BindView(R.id.date)
         TextView date;
+        @BindView(R.id.dayOfWeek)
         TextView  day;
+        @BindView(R.id.maxT)
         TextView  max;
+        @BindView(R.id.minT)
         TextView  min;
+        @BindView(R.id.imageWeather)
         ImageView icon;
 
 
-        public ViewHolder(CardView itemView, TextView date, TextView day, ImageView icon, TextView max, TextView min) {
+        public ViewHolder(CardView itemView) {
             super(itemView);
             cardView=itemView;
-            this.date = date;
-            this.day = day;
-            this.icon = icon;
-            this.max = max;
-            this.min = min;
+            ButterKnife.bind(this,cardView);
         }
     }
 
@@ -69,12 +73,7 @@ public class WeatherByDayAdapter extends RecyclerView.Adapter<WeatherByDayAdapte
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         CardView cardView = (CardView) LayoutInflater.from(parent.getContext()).inflate(R.layout.card_weather_by_day,parent,false);
-        TextView date = (TextView) cardView.findViewById(R.id.date);
-        TextView  day = (TextView) cardView.findViewById(R.id.dayOfWeek);
-        TextView  max = (TextView) cardView.findViewById(R.id.maxT);
-        TextView  min = (TextView) cardView.findViewById(R.id.minT);
-        ImageView icon = (ImageView) cardView.findViewById(R.id.imageWeather);
-        return new ViewHolder(cardView,date,day,icon,max,min);
+        return new ViewHolder(cardView);
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.util.Date;
  * Created by Vilagra on 16.11.2016.
  */
 
-//!!!не уверен, насколько тут соблюденно правило наследования "является"?
+
 public class WeatherByDay extends CurrentDisplayedWeather {
     @SerializedName("temperatureMin")
     private double minT;
@@ -32,14 +32,7 @@ public class WeatherByDay extends CurrentDisplayedWeather {
         this.minT = minT;
     }
 
-    public WeatherByDay(JSONObject jsonObject) {
-        super(jsonObject);
-        try {
-            minT=jsonObject.getDouble("minT");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     public String getMaxTString(String unit) {
         return getTemperatureString(unit,maxT);
@@ -49,14 +42,5 @@ public class WeatherByDay extends CurrentDisplayedWeather {
         return getTemperatureString(unit,minT);
     }
 
-    @Override
-    public JSONObject getJSONObject() {
-        JSONObject jsonObject = super.getJSONObject();
-        try{
-            jsonObject.put("minT",minT);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonObject;
-    }
+
 }

@@ -16,6 +16,9 @@ import com.example.weather.entity.WeatherByHours;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by Vilagra on 16.11.2016.
  */
@@ -31,21 +34,23 @@ public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdap
         this.sharedPreferences=sharedPreferences;
     }
 
-    public static class  ViewHolder extends RecyclerView.ViewHolder{
-        private  TextView date;
-        private TextView dateHour;
-        private TextView  temperature;
-        private TextView  wind;
-        private ImageView icon;
+    public static class  ViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.date2)
+        TextView date;
+        @BindView(R.id.hour)
+        TextView dateHour;
+        @BindView(R.id.temperetureByHour)
+        TextView temperature;
+        @BindView(R.id.wind_by_hour)
+        TextView wind;
+        @BindView(R.id.imageWeather2)
+        ImageView icon;
 
 
-        public ViewHolder(View itemView, TextView date, TextView dateHour, ImageView icon, TextView temperature, TextView wind) {
+        public ViewHolder(View itemView) {
             super(itemView);
-            this.date=date;
-            this.dateHour = dateHour;
-            this.icon = icon;
-            this.temperature = temperature;
-            this.wind = wind;
+            ButterKnife.bind(this, itemView);
+
         }
     }
 
@@ -57,12 +62,7 @@ public class WeatherByHourAdapter extends RecyclerView.Adapter<WeatherByHourAdap
     @Override
     public WeatherByHourAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         CardView cardView = (CardView) LayoutInflater.from(parent.getContext()).inflate(R.layout.card_weather_by_hour,parent,false);
-        TextView date = (TextView) cardView.findViewById(R.id.date2);
-        TextView dateHour = (TextView) cardView.findViewById(R.id.hour);
-        TextView  wind = (TextView) cardView.findViewById(R.id.wind_by_hour);
-        TextView  temp = (TextView) cardView.findViewById(R.id.temperetureByHour);
-        ImageView icon = (ImageView) cardView.findViewById(R.id.imageWeather2);
-        return new WeatherByHourAdapter.ViewHolder(cardView,date,dateHour,icon,temp,wind);
+        return new WeatherByHourAdapter.ViewHolder(cardView);
     }
 
     @Override
