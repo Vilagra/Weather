@@ -3,20 +3,18 @@ package com.example.weather;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -53,33 +51,30 @@ import android.widget.Toast;
 
 import com.example.weather.adpters.WeatherByDayAdapter;
 import com.example.weather.adpters.WeatherByHourAdapter;
-import com.example.weather.api.WeatherApi;
 import com.example.weather.entity.CurrentDisplayedWeather;
-import com.example.weather.entity.Weather;
 import com.example.weather.entity.WeatherByDay;
-import com.example.weather.entity.WeatherByHours;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.example.weather.loaders.CoordinatesLoader;
+import com.example.weather.loaders.WeatherLoader;
 
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Response;
-
 public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private ShareActionProvider shareActionProvider;
     private SharedPreferences sharedPreferences;
     private DataManager dataManager;
-    
+    LoaderManager.LoaderCallbacks<String[]> callbackForCoordinatesLoader;
+    LoaderManager.LoaderCallbacks<String> callbackForWeatherLoader;
+
 
     public final String RADIOBUTTON_ID = "radoButtonId";
     private final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 75443;
     private final int SETTINGS_RESULT = 75444;
+    private final int LOADER_WEATHER_ID=1;
+    private final int LOADER_COORDINATES_ID=2;
 
     EditText enterCity;
     TextView cityV;
@@ -117,6 +112,45 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         dataManager = new DataManager(getSharedPreferences(getString(R.string.myData), Context.MODE_PRIVATE));
         PreferenceManager.setDefaultValues(this,R.xml.pref,false);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        callbackForCoordinatesLoader= new LoaderManager.LoaderCallbacks<String[]>() {
+            @Override
+            public Loader<String[]> onCreateLoader(int id, Bundle args) {
+                return new CoordinatesLoader(MainActivity.this,args,dataManager);
+            }
+            @Override
+            public void onLoadFinished(Loader<String[]> loader, String[] data) {
+                if (data==null) {
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.unncorrect), Toast.LENGTH_LONG).show();
+                }
+                else {
+                    Bundle bundle = new Bundle();
+                    bundle.putStringArray(WeatherLoader.COORDINATES,data);
+                    getLoaderManager().restartLoader(LOADER_WEATHER_ID,bundle,callbackForWeatherLoader).forceLoad();
+                }
+            }
+            @Override
+            public void onLoaderReset(Loader<String[]> loader) {}
+        };
+        callbackForWeatherLoader = new LoaderManager.LoaderCallbacks<String>() {
+            @Override
+            public Loader<String> onCreateLoader(int id, Bundle args) {
+                return new WeatherLoader(MainActivity.this,args,dataManager);
+            }
+
+            @Override
+            public void onLoadFinished(Loader<String> loader, String data) {
+                updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
+                updateRecycler();
+            }
+            @Override
+            public void onLoaderReset(Loader<String> loader) {}
+        };
+        Bundle bundle= new Bundle();
+        bundle.putString(CoordinatesLoader.CITY_NAME,"");
+        String[] s = {""};
+        bundle.putStringArray(WeatherLoader.COORDINATES,s);
+        getLoaderManager().initLoader(LOADER_COORDINATES_ID,bundle,callbackForCoordinatesLoader);
+        getLoaderManager().initLoader(LOADER_WEATHER_ID,bundle,callbackForWeatherLoader);
         if (dataManager.getCurrentDisplay() != null) {
             updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
             if (savedInstanceState != null) {
@@ -138,6 +172,17 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
 
     }
+    public void refreshData() {
+        if (checkConnection()) {
+            Bundle bundle = new Bundle();
+            bundle.putString(CoordinatesLoader.CITY_NAME,enterCity.getText().toString().replaceAll(" ", "%20"));
+            //Log.d()
+            Loader<String[]> loader= getLoaderManager().restartLoader(LOADER_COORDINATES_ID,bundle,callbackForCoordinatesLoader);
+            loader.forceLoad();
+            //new GetLatLongAsyncTask().execute(enterCity.getText().toString().replaceAll(" ", "%20"));
+        }
+    }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -192,11 +237,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         return null;
     }
 
-    public void refreshData() {
-        if (checkConnection()) {
-            new GetLatLongAsyncTask().execute(enterCity.getText().toString().replaceAll(" ", "%20"));
-        }
-    }
 
     private void updateView(String city, CurrentDisplayedWeather currentDisplayedWeather, String location) {
         if (city.length() > 0) {
@@ -256,60 +296,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
 
-
-
-    public class GetWeatherAsyncTask extends AsyncTask<String[], Void, Void> {
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected Void doInBackground(String[]... params) {
-            try {
-                String[] strings = params[0];
-                WeatherApi weatherApi = App.getApi();
-                Call<ResponseBody> call=weatherApi.getData(strings[1],strings[0],"si","ru");
-                ResponseBody responseBody = call.execute().body();
-                InputStreamReader inputStream = new InputStreamReader(responseBody.byteStream());
-                StringBuilder res = new StringBuilder("");
-                char[] bytesBuffer = new char[1024];
-                int read;
-                while ((read = inputStream.read(bytesBuffer)) != -1) {
-                    res.append(bytesBuffer, 0, read);
-                }
-                JSONObject jsonObject = new JSONObject(res.toString());
-                JSONObject currently = jsonObject.getJSONObject("currently");
-                Gson gson = new Gson();
-                CurrentDisplayedWeather currentDisplayedWeather = gson.fromJson(currently.toString(),CurrentDisplayedWeather.class);
-                dataManager.setCurrentDisplay(currentDisplayedWeather);
-                JSONObject dailly = jsonObject.getJSONObject("daily");
-                JSONArray daillArray = dailly.getJSONArray("data");
-                List<Weather> weatherByDayList = gson.fromJson(daillArray.toString(), new TypeToken<ArrayList<WeatherByDay>>(){}.getType());
-                JSONObject hourly = jsonObject.getJSONObject("hourly");
-                JSONArray hourlyArray = hourly.getJSONArray("data");
-                List<Weather> weatherByHoursList = gson.fromJson(hourlyArray.toString(), new TypeToken<ArrayList<WeatherByHours>>(){}.getType());
-                dataManager.setWeatherByDays(weatherByDayList);
-                dataManager.setWeatherByHoursList(weatherByHoursList);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            updateView(dataManager.getNameOfCity(), dataManager.getCurrentDisplay(), dataManager.getLocation());
-            updateRecycler();
-        }
-
-
-
-    }
 
     //this async task finds latitude, longitude by cityName in google maps and passes them to getWeatherAsyncTask
     public class GetLatLongAsyncTask extends
@@ -388,20 +374,11 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.unncorrect), Toast.LENGTH_LONG).show();
             }
             else {
-                new GetWeatherAsyncTask().execute(s);
+                //new GetWeatherAsyncTask().execute(s);
         }
     }
 
 }
-
-    public String getUrl(String latitude, String longitude) {
-        StringBuilder prepareUrl = new StringBuilder("https://api.darksky.net/forecast/fff553af3244a00bd36d3c0b398dce88/");
-        prepareUrl.append(latitude);
-        prepareUrl.append(",");
-        prepareUrl.append(longitude);
-        prepareUrl.append("?units=si&lang=ru");
-        return prepareUrl.toString();
-    }
 
     //checks network connection depending on the settings specified by the user (only wifi or any connection)
     public boolean checkConnection() {
@@ -471,11 +448,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         super.onResume();
        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
-/*    @Override
-    protected void onPause() {
-        super.onPause();
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
-    }*/
+
 
 
     @Override
